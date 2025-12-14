@@ -1,5 +1,3 @@
-export const runtime = "edge";
-
 type RankedInResponse = any;
 
 function computeGames(detailed: any[] | undefined) {
