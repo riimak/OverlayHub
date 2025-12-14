@@ -1,6 +1,6 @@
 export const runtime = "edge";
 
-export default async function ScoreboardPage({
+export default function ScoreboardPage({
   params,
   searchParams
 }: {
@@ -8,10 +8,18 @@ export default async function ScoreboardPage({
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const courtId = params.courtId;
-  const scale = Number(searchParams?.scale ?? 1);
-  const refreshMs = Number(searchParams?.refresh ?? 1000);
 
-  // Page je overlay; data se vuče client-side.
+  const scaleRaw = searchParams?.scale;
+  const refreshRaw = searchParams?.refresh;
+
+  const scale = Number(Array.isArray(scaleRaw) ? scaleRaw[0] : scaleRaw ?? 1);
+  const refreshMs = Number(
+    Array.isArray(refreshRaw) ? refreshRaw[0] : refreshRaw ?? 1000
+  );
+
+  const safeScale = Number.isFinite(scale) ? scale : 1;
+  const safeRefresh = Number.isFinite(refreshMs) ? refreshMs : 1000;
+
   return (
     <html>
       <head>
@@ -19,7 +27,7 @@ export default async function ScoreboardPage({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>{`
           html, body { margin:0; background: transparent; font-family: Inter, Arial, sans-serif; }
-          .wrap { transform: scale(${isFinite(scale) ? scale : 1}); transform-origin: top left; }
+          .wrap { transform: scale(${safeScale}); transform-origin: top left; }
           .box {
             display:inline-block;
             padding: 14px 18px;
@@ -47,7 +55,9 @@ export default async function ScoreboardPage({
             <div className="row">
               <div className="name" id="p1name">—</div>
               <div className="scores">
-                <span className="pill">Games <b id="p1games">0</b></span>
+                <span className="pill">
+                  Games <b id="p1games">0</b>
+                </span>
                 <span className="serve" id="p1serve"></span>
                 <span className="points" id="p1pts">0</span>
               </div>
@@ -58,7 +68,9 @@ export default async function ScoreboardPage({
             <div className="row">
               <div className="name" id="p2name">—</div>
               <div className="scores">
-                <span className="pill">Games <b id="p2games">0</b></span>
+                <span className="pill">
+                  Games <b id="p2games">0</b>
+                </span>
                 <span className="serve" id="p2serve"></span>
                 <span className="points" id="p2pts">0</span>
               </div>
@@ -73,7 +85,7 @@ export default async function ScoreboardPage({
             __html: `
 (function(){
   const courtId = ${JSON.stringify(courtId)};
-  const refreshMs = ${JSON.stringify(isFinite(refreshMs) ? refreshMs : 1000)};
+  const refreshMs = ${JSON.stringify(safeRefresh)};
   const API = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/data';
 
   const el = (id) => document.getElementById(id);
@@ -108,6 +120,7 @@ export default async function ScoreboardPage({
       el('status').textContent = court + (data.match.status || 'Live') + tb + (when ? (' • Updated: ' + when) : '');
     } catch(e){
       el('status').textContent = 'Greška: ' + e.message;
+      // ne skrivamo box na grešku, da ostane zadnje poznato stanje (ako ga ima)
     }
   }
 

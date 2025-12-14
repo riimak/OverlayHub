@@ -3,7 +3,8 @@ export const runtime = "edge";
 type RankedInResponse = any;
 
 function computeGames(detailed: any[] | undefined) {
-  let g1 = 0, g2 = 0;
+  let g1 = 0,
+    g2 = 0;
   if (!Array.isArray(detailed)) return { g1, g2 };
   for (const g of detailed) {
     const a = g?.firstParticipantScore;
@@ -19,37 +20,42 @@ function fullName(p: any) {
   return [p?.firstName, p?.lastName].filter(Boolean).join(" ").trim();
 }
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { courtId: string } }
-) {
-  const courtId = params.courtId;
+/**
+ * Next.js 16 route handler typing:
+ * - context.params can be a Promise (per the error you saw),
+ * so we read it defensively via `await`.
+ */
+export async function GET(request: Request, context: any) {
+  const params = await context?.params;
+  const courtId = String(params?.courtId ?? "");
+
+  if (!courtId) {
+    return new Response(JSON.stringify({ error: "Missing courtId" }), {
+      status: 400,
+      headers: { "content-type": "application/json; charset=utf-8" }
+    });
+  }
+
   const upstream = `https://live.rankedin.com/api/v1/court/${encodeURIComponent(
     courtId
   )}/scoreboard`;
 
-  const res = await fetch(upstream, {
-    // Edge fetch: drži svježe
-    cache: "no-store"
-  });
+  const res = await fetch(upstream, { cache: "no-store" });
 
   if (!res.ok) {
-    return new Response(
-      JSON.stringify({ error: `Upstream HTTP ${res.status}` }),
-      {
-        status: 502,
-        headers: {
-          "content-type": "application/json; charset=utf-8",
-          "cache-control": "no-store"
-        }
+    return new Response(JSON.stringify({ error: `Upstream HTTP ${res.status}` }), {
+      status: 502,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store"
       }
-    );
+    });
   }
 
   const raw: RankedInResponse = await res.json();
   const live = raw?.liveMatch;
 
-  // Nema live meča
+  // No live match on court
   if (!live?.base || !live?.state) {
     return new Response(
       JSON.stringify({
@@ -61,7 +67,6 @@ export async function GET(
       {
         headers: {
           "content-type": "application/json; charset=utf-8",
-          // kratki shared cache na edge/CDN strani
           "cache-control": "public, s-maxage=1, stale-while-revalidate=1"
         }
       }
@@ -73,6 +78,7 @@ export async function GET(
 
   const points1 = live?.state?.score?.firstParticipantScore ?? 0;
   const points2 = live?.state?.score?.secondParticipantScore ?? 0;
+
   const { g1, g2 } = computeGames(live?.state?.score?.detailedResult);
 
   const isP1Serving = !!live?.state?.serve?.isFirstParticipantServing;
@@ -102,8 +108,9 @@ export async function GET(
   return new Response(JSON.stringify(payload), {
     headers: {
       "content-type": "application/json; charset=utf-8",
+      // Allow Vercel/edge cache for 1s (reduces upstream load)
       "cache-control": "public, s-maxage=1, stale-while-revalidate=1",
-      // ako ikad želiš da treće strane fetchaju JSON
+      // Optional: allow external consumers
       "access-control-allow-origin": "*"
     }
   });
