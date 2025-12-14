@@ -2,27 +2,47 @@ export const runtime = "nodejs";
 
 type RankedInResponse = any;
 
-function computeGames(detailed: any[] | undefined) {
-  let g1 = 0,
-    g2 = 0;
+function fullName(p: any) {
+  return [p?.firstName, p?.middleName, p?.lastName].filter(Boolean).join(" ").trim();
+}
 
-  if (!Array.isArray(detailed)) return { g1, g2, completed: 0 };
+function pickCurrentPoints(score: any) {
+  const idx = score?.index; // current game number
+  const dr = Array.isArray(score?.detailedResult) ? score.detailedResult : [];
 
-  for (const g of detailed) {
+  // If RankedIn stores live game score in detailedResult entry for current index, use it.
+  const last = dr.length ? dr[dr.length - 1] : null;
+  if (last && typeof idx === "number" && last.index === idx) {
+    const a = last.firstParticipantScore;
+    const b = last.secondParticipantScore;
+    if (typeof a === "number" && typeof b === "number") return { a, b };
+  }
+
+  // Fallback to top-level score fields (some feeds use these)
+  const a = score?.firstParticipantScore;
+  const b = score?.secondParticipantScore;
+  return {
+    a: typeof a === "number" ? a : 0,
+    b: typeof b === "number" ? b : 0
+  };
+}
+
+function computeGamesWon(score: any) {
+  const idx = score?.index;
+  const dr = Array.isArray(score?.detailedResult) ? score.detailedResult : [];
+
+  // Exclude current game entry (heuristic: same index as current score.index)
+  const completed = dr.filter((g: any) => !(typeof idx === "number" && g?.index === idx));
+
+  let g1 = 0, g2 = 0;
+  for (const g of completed) {
     const a = g?.firstParticipantScore;
     const b = g?.secondParticipantScore;
     if (typeof a !== "number" || typeof b !== "number") continue;
-
-    // count finished games by higher score
     if (a > b) g1++;
     else if (b > a) g2++;
   }
-
-  return { g1, g2, completed: detailed.length };
-}
-
-function fullName(p: any) {
-  return [p?.firstName, p?.middleName, p?.lastName].filter(Boolean).join(" ").trim();
+  return { g1, g2 };
 }
 
 export async function GET(_request: Request, context: any) {
@@ -36,14 +56,11 @@ export async function GET(_request: Request, context: any) {
     });
   }
 
-  const upstream = `https://live.rankedin.com/api/v1/court/${encodeURIComponent(
-    courtId
-  )}/scoreboard`;
+  const upstream = `https://live.rankedin.com/api/v1/court/${encodeURIComponent(courtId)}/scoreboard`;
 
   const res = await fetch(upstream, {
     cache: "no-store",
     headers: {
-      // helps with some WAF/proxy setups
       "user-agent": "OverlayHub/1.0 (+https://overlay-hub.vercel.app)"
     }
   });
@@ -82,17 +99,10 @@ export async function GET(_request: Request, context: any) {
   const p2 = live?.base?.secondParticipant?.[0];
 
   const score = live?.state?.score ?? {};
-  const detailed = score?.detailedResult as any[] | undefined;
+  const { a: points1, b: points2 } = pickCurrentPoints(score);
+  const { g1, g2 } = computeGamesWon(score);
 
-  const { g1, g2, completed } = computeGames(detailed);
-
-  const currentPoints1 = score?.firstParticipantScore ?? 0;
-  const currentPoints2 = score?.secondParticipantScore ?? 0;
-
-  // If there are completed games, current game number = completed + 1.
-  // (Good enough for scoreboard overlay; can be refined later.)
-  const gameNumber = Math.max(1, completed + 1);
-
+  const gameNumber = typeof score?.index === "number" ? score.index : 1;
   const isP1Serving = !!live?.state?.serve?.isFirstParticipantServing;
 
   const payload = {
@@ -108,13 +118,13 @@ export async function GET(_request: Request, context: any) {
       player1: {
         name: fullName(p1) || "Player 1",
         games: g1,
-        points: currentPoints1,
+        points: points1,
         serving: isP1Serving
       },
       player2: {
         name: fullName(p2) || "Player 2",
         games: g2,
-        points: currentPoints2,
+        points: points2,
         serving: !isP1Serving
       }
     }
