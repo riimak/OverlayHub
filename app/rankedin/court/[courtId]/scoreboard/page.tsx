@@ -1,12 +1,10 @@
+export const runtime = "edge";
+
 export default function ScoreboardPage({
-  params,
   searchParams
 }: {
-  params: { courtId: string };
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const courtId = params.courtId;
-
   const scaleRaw = searchParams?.scale;
   const refreshRaw = searchParams?.refresh;
 
@@ -82,7 +80,15 @@ export default function ScoreboardPage({
           dangerouslySetInnerHTML={{
             __html: `
 (function(){
-  const courtId = ${JSON.stringify(courtId)};
+  // Derive courtId from URL path: /rankedin/court/<courtId>/scoreboard
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const courtId = parts[2];
+
+  if (!courtId) {
+    console.error("Missing courtId in URL path:", window.location.pathname);
+    return;
+  }
+
   const refreshMs = ${JSON.stringify(safeRefresh)};
   const API = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/data';
 
@@ -118,7 +124,6 @@ export default function ScoreboardPage({
       el('status').textContent = court + (data.match.status || 'Live') + tb + (when ? (' • Updated: ' + when) : '');
     } catch(e){
       el('status').textContent = 'Greška: ' + e.message;
-      // ne skrivamo box na grešku, da ostane zadnje poznato stanje (ako ga ima)
     }
   }
 
