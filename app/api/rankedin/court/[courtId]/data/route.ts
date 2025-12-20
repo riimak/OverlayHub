@@ -6,43 +6,58 @@ function fullName(p: any) {
   return [p?.firstName, p?.middleName, p?.lastName].filter(Boolean).join(" ").trim();
 }
 
-function pickCurrentPoints(score: any) {
-  const idx = score?.index; // current game number
-  const dr = Array.isArray(score?.detailedResult) ? score.detailedResult : [];
+// Squash game completion heuristic: to 11, win by 2 (can go beyond 11)
+function isGameComplete(a: number, b: number) {
+  const hi = Math.max(a, b);
+  const diff = Math.abs(a - b);
+  return hi >= 11 && diff >= 2;
+}
 
-  // If RankedIn stores live game score in detailedResult entry for current index, use it.
-  const last = dr.length ? dr[dr.length - 1] : null;
-  if (last && typeof idx === "number" && last.index === idx) {
-    const a = last.firstParticipantScore;
-    const b = last.secondParticipantScore;
-    if (typeof a === "number" && typeof b === "number") return { a, b };
-  }
+function safeNumber(x: any, fallback = 0) {
+  return typeof x === "number" && Number.isFinite(x) ? x : fallback;
+}
 
-  // Fallback to top-level score fields (some feeds use these)
-  const a = score?.firstParticipantScore;
-  const b = score?.secondParticipantScore;
-  return {
-    a: typeof a === "number" ? a : 0,
-    b: typeof b === "number" ? b : 0
-  };
+function getDetailed(score: any): any[] {
+  return Array.isArray(score?.detailedResult) ? score.detailedResult : [];
 }
 
 function computeGamesWon(score: any) {
-  const idx = score?.index;
-  const dr = Array.isArray(score?.detailedResult) ? score.detailedResult : [];
-
-  // Exclude current game entry (heuristic: same index as current score.index)
-  const completed = dr.filter((g: any) => !(typeof idx === "number" && g?.index === idx));
-
+  const dr = getDetailed(score);
   let g1 = 0, g2 = 0;
-  for (const g of completed) {
-    const a = g?.firstParticipantScore;
-    const b = g?.secondParticipantScore;
-    if (typeof a !== "number" || typeof b !== "number") continue;
+
+  for (const g of dr) {
+    const a = safeNumber(g?.firstParticipantScore, -1);
+    const b = safeNumber(g?.secondParticipantScore, -1);
+    if (a < 0 || b < 0) continue;
+
+    if (!isGameComplete(a, b)) continue; // only count completed games
+
     if (a > b) g1++;
     else if (b > a) g2++;
   }
+
   return { g1, g2 };
+}
+
+function pickCurrentGame(score: any) {
+  const dr = getDetailed(score);
+
+  // If we have detailed results, treat the LAST entry as "current game snapshot"
+  // because RankedIn sometimes keeps score.index stale.
+  if (dr.length) {
+    const last = dr[dr.length - 1];
+    const a = safeNumber(last?.firstParticipantScore, 0);
+    const b = safeNumber(last?.secondParticipantScore, 0);
+    const idx = safeNumber(last?.index, dr.length); // use entry index if present
+    const complete = isGameComplete(a, b);
+    return { a, b, idx, complete, source: "detailed:last" as const };
+  }
+
+  // Fallback: use top-level current points
+  const a = safeNumber(score?.firstParticipantScore, 0);
+  const b = safeNumber(score?.secondParticipantScore, 0);
+  const idx = safeNumber(score?.index, 1);
+  return { a, b, idx, complete: isGameComplete(a, b), source: "top-level" as const };
 }
 
 export async function GET(_request: Request, context: any) {
@@ -99,10 +114,9 @@ export async function GET(_request: Request, context: any) {
   const p2 = live?.base?.secondParticipant?.[0];
 
   const score = live?.state?.score ?? {};
-  const { a: points1, b: points2 } = pickCurrentPoints(score);
   const { g1, g2 } = computeGamesWon(score);
 
-  const gameNumber = typeof score?.index === "number" ? score.index : 1;
+  const current = pickCurrentGame(score);
   const isP1Serving = !!live?.state?.serve?.isFirstParticipantServing;
 
   const payload = {
@@ -111,20 +125,24 @@ export async function GET(_request: Request, context: any) {
     updatedAt: live?.state?.dateSent ?? new Date().toISOString(),
     match: {
       status: live?.state?.matchAction ?? "Live",
-      refereeAction: live?.state?.refereeAction ?? null,
       tiebreak: !!score?.isTieBreak,
       durationSeconds: live?.state?.totalDurationInSeconds ?? null,
-      gameNumber,
+
+      // This is what you want "in focus"
+      gameNumber: current.idx,
+      gameComplete: current.complete,
+      pointsSource: current.source,
+
       player1: {
         name: fullName(p1) || "Player 1",
         games: g1,
-        points: points1,
+        points: current.a,
         serving: isP1Serving
       },
       player2: {
         name: fullName(p2) || "Player 2",
         games: g2,
-        points: points2,
+        points: current.b,
         serving: !isP1Serving
       }
     }
