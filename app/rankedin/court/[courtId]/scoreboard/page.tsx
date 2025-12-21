@@ -491,20 +491,25 @@ export default function ScoreboardPage({
         if (event && typeof event.at === 'number' && event.at > lastEventAt) {
           lastEventAt = event.at;
 
+          // Animate whichever card is currently visible
+          const target = !box.classList.contains('hidden') ? box : (!slate.classList.contains('hidden') ? slate : null);
+          if (!target) return;
+
           if (event.type === 'flash') {
-            box.classList.remove('flash');
-            void box.offsetWidth;
-            box.classList.add('flash');
-            setTimeout(() => box.classList.remove('flash'), 700);
+            target.classList.remove('flash');
+            void target.offsetWidth;
+            target.classList.add('flash');
+            setTimeout(() => target.classList.remove('flash'), 700);
           }
 
           if (event.type === 'slide') {
-            box.classList.remove('slide');
-            void box.offsetWidth;
-            box.classList.add('slide');
-            setTimeout(() => box.classList.remove('slide'), 900);
+            target.classList.remove('slide');
+            void target.offsetWidth;
+            target.classList.add('slide');
+            setTimeout(() => target.classList.remove('slide'), 900);
           }
         }
+
 
         return;
       }

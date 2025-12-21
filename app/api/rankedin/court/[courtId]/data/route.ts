@@ -61,6 +61,14 @@ function pickCurrentGame(score: any) {
 const settingsKey = (courtId: string) => `overlay:rankedin:court:${courtId}:settings`;
 const eventKey = (courtId: string) => `overlay:rankedin:court:${courtId}:event`;
 
+const [settings, event] = await Promise.all([
+  kv.get(settingsKey(courtId)).catch(() => ({})),
+  kv.get(eventKey(courtId)).catch(() => null)
+]);
+
+// one-shot: delete after read
+if (event) await kv.del(eventKey(courtId)).catch(() => {});
+
 export async function GET(_request: Request, context: any) {
   const params = await context?.params;
   const courtId = String(params?.courtId ?? "");
@@ -138,7 +146,7 @@ export async function GET(_request: Request, context: any) {
       },
       overlay: {
         settings: settings ?? {},
-        event: null
+        event: event ?? null
       }
     };
 
