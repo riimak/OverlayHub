@@ -24,15 +24,38 @@ export async function POST(req: Request, context: any) {
 
   // allowlist a few fields (expand later)
   const next = {
-    format: body.format ?? null, // "bo3" | "bo5"
     swap: !!body.swap,
-    name1: typeof body.name1 === "string" ? body.name1 : null,
-    name2: typeof body.name2 === "string" ? body.name2 : null,
-    leftColor: typeof body.leftColor === "string" ? body.leftColor : null,
-    rightColor: typeof body.rightColor === "string" ? body.rightColor : null,
+
+    name1: typeof body.name1 === "string" && body.name1.trim() ? body.name1.trim() : null,
+    name2: typeof body.name2 === "string" && body.name2.trim() ? body.name2.trim() : null,
+
+    leftColor:
+        typeof body.leftColor === "string" && body.leftColor.trim() ? body.leftColor.trim() : null,
+    rightColor:
+        typeof body.rightColor === "string" && body.rightColor.trim() ? body.rightColor.trim() : null,
+
+
     logoOpacity: typeof body.logoOpacity === "number" ? body.logoOpacity : null,
-    logoScale: typeof body.logoScale === "number" ? body.logoScale : null
-  };
+    logoScale: typeof body.logoScale === "number" ? body.logoScale : null,
+
+    // NEW
+    viewMode:
+        body.viewMode === "auto" ||
+        body.viewMode === "scoreboard" ||
+        body.viewMode === "slate" ||
+        body.viewMode === "hidden"
+        ? body.viewMode
+        : "auto",
+
+    tournamentName:
+        typeof body.tournamentName === "string" && body.tournamentName.trim()
+        ? body.tournamentName.trim()
+        : null,
+
+    subtitle:
+        typeof body.subtitle === "string" && body.subtitle.trim() ? body.subtitle.trim() : null
+    };
+
 
   await kv.set(key(courtId), next);
   return Response.json({ ok: true });

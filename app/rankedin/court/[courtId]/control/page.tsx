@@ -17,15 +17,17 @@ export default function ControlPage() {
 
   // Form state
   const [settings, setSettings] = useState<any>({
-    format: "bo3",
+    viewMode: "auto",
     swap: false,
     name1: "",
     name2: "",
     leftColor: "",
     rightColor: "",
     logoOpacity: 0.7,
-    logoScale: 0.9
-  });
+    logoScale: 0.9,
+    tournamentName: "",
+    subtitle: ""
+});
 
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string>("");
@@ -120,18 +122,42 @@ export default function ControlPage() {
       <div style={{ opacity: 0.75, marginBottom: 14 }}>{status}</div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        
         <label>
-          Format
-          <select
-            value={settings.format ?? "bo3"}
-            onChange={(e) => setSettings({ ...settings, format: e.target.value })}
-            style={{ width: "100%", padding: 8, marginTop: 6 }}
-          >
-            <option value="bo3">Best of 3</option>
-            <option value="bo5">Best of 5</option>
-          </select>
-        </label>
+            View mode
+            <select
+                value={settings.viewMode ?? "auto"}
+                onChange={(e) => setSettings({ ...settings, viewMode: e.target.value })}
+                style={{ width: "100%", padding: 8, marginTop: 6 }}
+            >
+                <option value="auto">Auto (scoreboard if live, slate if not)</option>
+                <option value="scoreboard">Force scoreboard</option>
+                <option value="slate">Force slate</option>
+                <option value="hidden">Hide everything</option>
+            </select>
+            </label>
 
+            <label>
+            Tournament name
+            <input
+                value={settings.tournamentName ?? ""}
+                onChange={(e) => setSettings({ ...settings, tournamentName: e.target.value })}
+                placeholder="e.g. Squasher.hr Open 2025"
+                style={{ width: "100%", padding: 8, marginTop: 6 }}
+            />
+            </label>
+
+            <label style={{ gridColumn: "1 / -1" }}>
+            Subtitle (optional)
+            <input
+                value={settings.subtitle ?? ""}
+                onChange={(e) => setSettings({ ...settings, subtitle: e.target.value })}
+                placeholder="e.g. Court A • Zagreb"
+                style={{ width: "100%", padding: 8, marginTop: 6 }}
+            />
+            </label>
+
+        
         <label style={{ display: "flex", alignItems: "end", gap: 8 }}>
           <input
             type="checkbox"
