@@ -1,6 +1,6 @@
 export const runtime = "nodejs";
 
-import { kv } from "../../../../../../lib/kv";
+import { kv } from "../../../../../lib/kv";
 
 const RANKEDIN_BASE = "https://live.rankedin.com/api/v1";
 
