@@ -235,11 +235,15 @@ export default function ScoreboardPage({
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const data = await r.json();
 
-      if(!data.match){
+      if (!data.match) {
         el('box').classList.add('hidden');
         return;
       }
       el('box').classList.remove('hidden');
+
+      const isLive = !!data.match.isLive;
+      el('status').textContent = (data.match.status || (isLive ? 'LIVE' : 'NOT LIVE')).toUpperCase();
+
 
       el('n1').textContent = data.match.player1.name || 'PLAYER 1';
       el('n2').textContent = data.match.player2.name || 'PLAYER 2';
