@@ -1,212 +1,190 @@
 export const runtime = "nodejs";
 
-import { kv } from "../../../../../lib/kv";
+import { kv } from "../../../../../../lib/kv";
 
-type RankedInResponse = any;
-
-function fullName(p: any) {
-  return [p?.firstName, p?.middleName, p?.lastName].filter(Boolean).join(" ").trim();
-}
-
-function safeNumber(x: any, fallback = 0) {
-  return typeof x === "number" && Number.isFinite(x) ? x : fallback;
-}
-
-function getDetailed(score: any): any[] {
-  return Array.isArray(score?.detailedResult) ? score.detailedResult : [];
-}
-
-// Squash completion heuristic: to 11, win by 2
-function isGameComplete(a: number, b: number) {
-  const hi = Math.max(a, b);
-  const diff = Math.abs(a - b);
-  return hi >= 11 && diff >= 2;
-}
-
-function computeGamesWon(score: any) {
-  const dr = getDetailed(score);
-  let g1 = 0,
-    g2 = 0;
-
-  for (const g of dr) {
-    const a = safeNumber(g?.firstParticipantScore, -1);
-    const b = safeNumber(g?.secondParticipantScore, -1);
-    if (a < 0 || b < 0) continue;
-    if (!isGameComplete(a, b)) continue;
-
-    if (a > b) g1++;
-    else if (b > a) g2++;
-  }
-
-  return { g1, g2 };
-}
-
-function pickCurrentGame(score: any) {
-  const dr = getDetailed(score);
-
-  if (dr.length) {
-    const last = dr[dr.length - 1];
-    const a = safeNumber(last?.firstParticipantScore, 0);
-    const b = safeNumber(last?.secondParticipantScore, 0);
-    const idx = safeNumber(last?.index, safeNumber(score?.index, dr.length || 1));
-    return { a, b, idx, complete: isGameComplete(a, b), source: "detailed:last" as const };
-  }
-
-  const a = safeNumber(score?.firstParticipantScore, 0);
-  const b = safeNumber(score?.secondParticipantScore, 0);
-  const idx = safeNumber(score?.index, 1);
-  return { a, b, idx, complete: isGameComplete(a, b), source: "top-level" as const };
-}
+const RANKEDIN_BASE = "https://live.rankedin.com/api/v1";
 
 const settingsKey = (courtId: string) => `overlay:rankedin:court:${courtId}:settings`;
 const eventKey = (courtId: string) => `overlay:rankedin:court:${courtId}:event`;
 
-const [settings, event] = await Promise.all([
-  kv.get(settingsKey(courtId)).catch(() => ({})),
-  kv.get(eventKey(courtId)).catch(() => null)
-]);
+function json(data: any, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      "access-control-allow-origin": "*"
+    }
+  });
+}
 
-// one-shot: delete after read
-if (event) await kv.del(eventKey(courtId)).catch(() => {});
+function nameFromParticipants(p: any) {
+  const arr = Array.isArray(p) ? p : [];
+  const one = arr[0] ?? null;
+  if (!one) return "—";
+  const first = one.firstName ?? "";
+  const last = one.lastName ?? "";
+  const full = `${first} ${last}`.trim();
+  return full || "—";
+}
 
-export async function GET(_request: Request, context: any) {
+function fmtStatus(matchAction?: string) {
+  const a = String(matchAction || "").toLowerCase();
+  if (a === "play") return "LIVE";
+  if (a === "pause") return "PAUSE";
+  if (a) return a.toUpperCase();
+  return "NOT LIVE";
+}
+
+/**
+ * We expose a stable shape for the overlay:
+ * {
+ *   courtId, courtName,
+ *   match: {
+ *     isLive, status, durationSeconds, scheduledStartTime,
+ *     gameNumber,
+ *     player1: { name, points, games, serving },
+ *     player2: { name, points, games, serving }
+ *   },
+ *   overlay: { settings, event }
+ * }
+ */
+export async function GET(_req: Request, context: any) {
   const params = await context?.params;
   const courtId = String(params?.courtId ?? "");
 
-  if (!courtId) {
-    return new Response(JSON.stringify({ error: "Missing courtId" }), {
-      status: 400,
-      headers: { "content-type": "application/json; charset=utf-8" }
-    });
+  if (!courtId) return json({ error: "Missing courtId" }, 400);
+
+  // 1) Pull RankedIn data
+  const upstreamUrl = `${RANKEDIN_BASE}/court/${encodeURIComponent(courtId)}/scoreboard`;
+
+  let upstream: any = null;
+  try {
+    const r = await fetch(upstreamUrl, { cache: "no-store" });
+    if (!r.ok) {
+      return json({ error: `Upstream HTTP ${r.status}` }, 502);
+    }
+    upstream = await r.json();
+  } catch (e: any) {
+    return json({ error: "Upstream fetch failed" }, 502);
   }
 
-  const upstream = `https://live.rankedin.com/api/v1/court/${encodeURIComponent(
-    courtId
-  )}/scoreboard`;
+  const courtName = upstream?.details?.courtName ?? null;
 
-  const res = await fetch(upstream, {
-    cache: "no-store",
-    headers: { "user-agent": "OverlayHub/1.0 (+https://overlay-hub.vercel.app)" }
-  });
-
-  if (!res.ok) {
-    return new Response(JSON.stringify({ error: `Upstream HTTP ${res.status}` }), {
-      status: 502,
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        "cache-control": "no-store"
-      }
-    });
-  }
-
-  const raw: RankedInResponse = await res.json();
-
-  // KV (settings + one-shot event)
+  // 2) Load overlay settings + one-shot event from KV (and delete event)
   const [settings, event] = await Promise.all([
     kv.get(settingsKey(courtId)).catch(() => ({})),
     kv.get(eventKey(courtId)).catch(() => null)
   ]);
 
-  // Always clear event after read (one-shot)
-  if (event) await kv.del(eventKey(courtId)).catch(() => {});
+  if (event) {
+    await kv.del(eventKey(courtId)).catch(() => {});
+  }
 
-  const courtName = raw?.details?.courtName ?? null;
+  // 3) Normalize match shape
+  const liveMatch = upstream?.liveMatch ?? null;
 
-  // --- NEW: If not live, provide a "preview match" from nextMatch (or previousMatch)
-  if (!raw?.liveMatch) {
-    const candidate = raw?.nextMatch ?? raw?.previousMatch ?? null;
+  // If there is a live match -> use it
+  if (liveMatch?.state) {
+    const base = liveMatch.base ?? {};
+    const state = liveMatch.state ?? {};
+    const score = state.score ?? {};
 
-    const p1 = candidate?.firstParticipant?.[0] ?? null;
-    const p2 = candidate?.secondParticipant?.[0] ?? null;
+    const detailed: any[] = Array.isArray(score.detailedResult) ? score.detailedResult : [];
 
-    const payload: any = {
-      courtId: Number(courtId),
-      courtName,
-      updatedAt: new Date().toISOString(),
-      match: {
-        isLive: false,
-        status: "NOT LIVE",
-        gameNumber: 1,
-        durationSeconds: 0,
-        player1: {
-          name: fullName(p1) || "Player 1",
-          games: 0,
-          points: 0,
-          serving: false
-        },
-        player2: {
-          name: fullName(p2) || "Player 2",
-          games: 0,
-          points: 0,
-          serving: false
-        },
-        // extra info for the UI
-        scheduledStartTime: candidate?.startTime ?? null,
-        className: candidate?.className ?? null
+    // Current game number:
+    // score.index seems to represent game index, but detailedResult contains array of games with index too.
+    const gameNumber = Number(score.index || (detailed[detailed.length - 1]?.index ?? 1)) || 1;
+
+    // Points: show CURRENT GAME points.
+    // In RankedIn examples you posted, current points live in detailedResult[gameNumber-1]
+    const currentGame = detailed.find((g) => Number(g.index) === gameNumber) ?? detailed[detailed.length - 1] ?? null;
+
+    const p1Points = currentGame ? Number(currentGame.firstParticipantScore ?? 0) : 0;
+    const p2Points = currentGame ? Number(currentGame.secondParticipantScore ?? 0) : 0;
+
+    // Games: use firstParticipantScore / secondParticipantScore (games won)
+    const p1Games = Number(score.firstParticipantScore ?? 0);
+    const p2Games = Number(score.secondParticipantScore ?? 0);
+
+    const isFirstServing = !!state?.serve?.isFirstParticipantServing;
+
+    const match = {
+      isLive: String(state.matchAction || "").toLowerCase() === "play",
+      status: fmtStatus(state.matchAction),
+      durationSeconds: Number(state.totalDurationInSeconds ?? 0),
+      scheduledStartTime: null as string | null,
+      gameNumber,
+
+      player1: {
+        name: nameFromParticipants(base.firstParticipant),
+        points: p1Points,
+        games: p1Games,
+        serving: isFirstServing
       },
+      player2: {
+        name: nameFromParticipants(base.secondParticipant),
+        points: p2Points,
+        games: p2Games,
+        serving: !isFirstServing
+      }
+    };
+
+    return json({
+      courtId,
+      courtName,
+      match,
       overlay: {
         settings: settings ?? {},
         event: event ?? null
       }
+    });
+  }
+
+  // 4) No live match: use nextMatch (for slate/testing)
+  const nextMatch = upstream?.nextMatch ?? null;
+
+  if (nextMatch) {
+    const match = {
+      isLive: false,
+      status: "NOT LIVE",
+      durationSeconds: 0,
+      scheduledStartTime: typeof nextMatch.startTime === "string" ? nextMatch.startTime : null,
+      gameNumber: 1,
+
+      player1: {
+        name: nameFromParticipants(nextMatch.firstParticipant),
+        points: 0,
+        games: 0,
+        serving: false
+      },
+      player2: {
+        name: nameFromParticipants(nextMatch.secondParticipant),
+        points: 0,
+        games: 0,
+        serving: false
+      }
     };
 
-    return new Response(JSON.stringify(payload), {
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        "cache-control": "no-store",
-        "access-control-allow-origin": "*"
+    return json({
+      courtId,
+      courtName,
+      match,
+      overlay: {
+        settings: settings ?? {},
+        event: event ?? null
       }
     });
   }
 
-  // --- Live match case (existing behavior)
-  const live = raw.liveMatch;
-  const p1 = live?.base?.firstParticipant?.[0];
-  const p2 = live?.base?.secondParticipant?.[0];
-
-  const score = live?.state?.score ?? {};
-  const { g1, g2 } = computeGamesWon(score);
-  const current = pickCurrentGame(score);
-
-  const isP1Serving = !!live?.state?.serve?.isFirstParticipantServing;
-
-  const payload: any = {
-    courtId: Number(courtId),
+  // 5) Nothing at all
+  return json({
+    courtId,
     courtName,
-    updatedAt: live?.state?.dateSent ?? new Date().toISOString(),
-    match: {
-      isLive: true,
-      status: live?.state?.matchAction ?? "Live",
-      durationSeconds: live?.state?.totalDurationInSeconds ?? null,
-
-      gameNumber: current.idx,
-      gameComplete: current.complete,
-      pointsSource: current.source,
-
-      player1: {
-        name: fullName(p1) || "Player 1",
-        games: g1,
-        points: current.a,
-        serving: isP1Serving
-      },
-      player2: {
-        name: fullName(p2) || "Player 2",
-        games: g2,
-        points: current.b,
-        serving: !isP1Serving
-      }
-    },
+    match: null,
     overlay: {
       settings: settings ?? {},
-      event: null
-    }
-  };
-
-  return new Response(JSON.stringify(payload), {
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "public, s-maxage=1, stale-while-revalidate=1",
-      "access-control-allow-origin": "*"
+      event: event ?? null
     }
   });
 }
