@@ -1,6 +1,6 @@
 export const runtime = "nodejs";
 
-import { kv } from "@/app/lib/kv";
+import { kv } from "../../../../../../lib/kv";
 
 type RankedInResponse = any;
 
