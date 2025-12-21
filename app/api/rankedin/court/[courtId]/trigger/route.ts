@@ -1,6 +1,6 @@
 export const runtime = "nodejs";
 
-import { kv } from "../../../../../../lib/kv";
+import { kv } from "../../../../../lib/kv";
 
 
 const key = (courtId: string) => `overlay:rankedin:court:${courtId}:event`;
