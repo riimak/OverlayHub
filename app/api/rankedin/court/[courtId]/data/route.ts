@@ -144,3 +144,65 @@ export async function GET(_request: Request, context: any) {
       headers: {
         "content-type": "application/json; charset=utf-8",
         "cache-control": "public, s-maxage=1, stale-while-revalidate=1",
+        "access-control-allow-origin": "*"
+      }
+    });
+  }
+
+  const p1 = live?.base?.firstParticipant?.[0];
+  const p2 = live?.base?.secondParticipant?.[0];
+
+  const score = live?.state?.score ?? {};
+  const { g1, g2 } = computeGamesWon(score);
+  const current = pickCurrentGame(score);
+
+  const isP1Serving = !!live?.state?.serve?.isFirstParticipantServing;
+
+  // Build match payload
+  const payload: any = {
+    courtId: Number(courtId),
+    courtName: raw?.details?.courtName ?? null,
+    updatedAt: live?.state?.dateSent ?? new Date().toISOString(),
+    match: {
+      status: live?.state?.matchAction ?? "Live",
+      refereeAction: live?.state?.refereeAction ?? null,
+      tiebreak: !!score?.isTieBreak,
+      durationSeconds: live?.state?.totalDurationInSeconds ?? null,
+
+      // Current game
+      gameNumber: current.idx,
+      gameComplete: current.complete,
+      pointsSource: current.source,
+
+      player1: {
+        name: fullName(p1) || "Player 1",
+        games: g1,
+        points: current.a,
+        serving: isP1Serving
+      },
+      player2: {
+        name: fullName(p2) || "Player 2",
+        games: g2,
+        points: current.b,
+        serving: !isP1Serving
+      }
+    },
+
+    // Merge overlay meta
+    overlay: {
+      settings: settings ?? {},
+      event: event ?? null
+    }
+  };
+
+  // Clear event after reading (one-shot animation trigger)
+  if (event) await kv.del(eventKey(courtId)).catch(() => {});
+
+  return new Response(JSON.stringify(payload), {
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "public, s-maxage=1, stale-while-revalidate=1",
+      "access-control-allow-origin": "*"
+    }
+  });
+}
