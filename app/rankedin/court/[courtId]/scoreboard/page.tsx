@@ -31,13 +31,24 @@ export default function ScoreboardPage({
 
         <style>{`
           :root{
-            --bg: rgba(247, 241, 225, 0.92);      /* name plate */
-            --bg2: rgba(240, 232, 210, 0.88);     /* subtle */
-            --ink: rgba(18, 18, 18, 0.95);
-            --muted: rgba(18, 18, 18, 0.70);
-            --line: rgba(18, 18, 18, 0.18);
-            --cap: rgba(16, 16, 16, 0.92);        /* score capsule */
+            /* Warm plates */
+            --bg: rgba(247, 241, 225, 0.92);
+            --ink: rgba(18, 18, 18, 0.92);
+            --line: rgba(18, 18, 18, 0.14);
+
+            /* Primary score capsule (deep charcoal) */
+            --cap: rgba(14, 14, 16, 0.92);
             --capInk: rgba(255,255,255,0.96);
+
+            /* Secondary pill (cool slate, softer contrast) */
+            --pillBg: rgba(255,255,255,0.10);
+            --pillBorder: rgba(255,255,255,0.14);
+            --pillInk: rgba(255,255,255,0.78);
+
+            /* Serve dots */
+            --dotOff: rgba(255,255,255,0.28);
+            --dotOn: rgba(255,255,255,0.92);
+
             --shadow: 0 12px 26px rgba(0,0,0,0.34);
           }
 
@@ -52,7 +63,7 @@ export default function ScoreboardPage({
             padding: 18px;
           }
 
-          /* ===== SCORE BAR (matches your photo) ===== */
+          /* ===== SCORE BAR ===== */
           .bar {
             width: 820px;
             height: 38px;
@@ -101,41 +112,48 @@ export default function ScoreboardPage({
             align-items:center;
             justify-content:center;
             gap: 10px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-top: 1px solid rgba(255,255,255,0.07);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
           }
 
-          .pt {
+          /* Primary score points (hero) */
+          .pt{
             font-weight: 900;
-            font-size: 18px;
+            font-size: 19px;
+            letter-spacing: 0.2px;
             min-width: 22px;
             text-align:center;
+            color: var(--capInk);
           }
 
-          .games {
+          /* Secondary games-won pill */
+          .games{
             display:flex;
             align-items:center;
             justify-content:center;
             gap: 6px;
             padding: 0 10px;
             height: 22px;
-            border-radius: 2px;
-            background: rgba(255,255,255,0.10);
-            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 3px;
+
+            background: var(--pillBg);
+            border: 1px solid var(--pillBorder);
+            color: var(--pillInk);
+
             font-weight: 900;
             letter-spacing: 0.6px;
             font-size: 13px;
           }
 
-          .dot {
+          .dot{
             width: 6px;
             height: 6px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.35);
+            background: var(--dotOff);
           }
-          .dot.on { background: rgba(255,255,255,0.95); }
+          .dot.on { background: var(--dotOn); }
 
-          /* Status / not-live tiny hint (optional) */
+          /* Optional status line (hidden by default) */
           .status {
             width: 820px;
             margin: 6px auto 0;
@@ -148,7 +166,7 @@ export default function ScoreboardPage({
             color: rgba(255,255,255,0.78);
             text-shadow: 0 2px 10px rgba(0,0,0,0.65);
             user-select: none;
-            opacity: 0.0; /* default hidden; set to 1 if you want it visible */
+            opacity: 0.0; /* set to 1 to show */
           }
 
           .hidden { display:none; }
@@ -339,12 +357,12 @@ export default function ScoreboardPage({
         el('p1').textContent = String(left.points ?? 0);
         el('p2').textContent = String(right.points ?? 0);
 
-        // Middle = games won (like your photo: 1-2)
+        // Middle = games won
         const gL = left.games ?? 0;
         const gR = right.games ?? 0;
         el('gmid').textContent = String(gL) + '–' + String(gR);
 
-        // Serve dots (optional)
+        // Serve dots
         el('s1').className = 'dot' + (left.serving ? ' on' : '');
         el('s2').className = 'dot' + (right.serving ? ' on' : '');
 
