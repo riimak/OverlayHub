@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 
+import { NextRequest } from "next/server";
 import { kv } from "../../../../../lib/kv";
 
 const RANKEDIN_LIVE_BASE = "https://live.rankedin.com/api/v1";
@@ -70,7 +71,7 @@ function pickCurrentGameRow(detailed: any[]) {
   return last;
 }
 
-// Normalize a tournament match item into a simple "card" we can render on now/next/schedule.
+// Normalize a tournament match item into a simple "card"
 function normalizeTournamentMatch(m: any) {
   const challenger = m?.Challenger ?? {};
   const challenged = m?.Challenged ?? {};
@@ -91,7 +92,6 @@ function normalizeTournamentMatch(m: any) {
       country: challenged?.CountryShort ?? null
     },
 
-    // these exist for finished matches:
     result: m?.MatchResult?.Score
       ? {
           games1: safeNum(m.MatchResult.Score.FirstParticipantScore, 0),
@@ -106,15 +106,11 @@ function normalizeTournamentMatch(m: any) {
         }
       : null,
 
-    // Heuristic: in your sample, State=6 seems "finished".
-    // We'll also treat IsPlayed from MatchResult as finished if present.
     isFinished: !!m?.MatchResult?.IsPlayed || safeNum(m?.State, 0) === 6,
-
     isScheduled: !!m?.IsMatchScheduled
   };
 }
 
-// Choose now/next/schedule for a given court from tournament matches.
 function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: number) {
   const forCourt = matches
     .filter((m) => (m?.Court ?? "") === courtName)
@@ -125,7 +121,6 @@ function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: n
   const upcoming = forCourt.filter((m) => !m.isFinished);
   const finished = forCourt.filter((m) => m.isFinished);
 
-  // Candidate "now": closest match at/just before now that isn't finished, otherwise first upcoming.
   const pastOrNowUpcoming = upcoming.filter((m) => {
     const t = m.date ? Date.parse(m.date) : NaN;
     return Number.isFinite(t) ? t <= nowTs : false;
@@ -136,7 +131,6 @@ function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: n
     (upcoming[0] ?? null) ??
     null;
 
-  // Next is next upcoming after "nowMatch"
   let nextMatch: any = null;
   if (nowMatch) {
     const idx = upcoming.findIndex((m) => m.id === nowMatch.id);
@@ -145,7 +139,6 @@ function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: n
     nextMatch = upcoming[0] ?? null;
   }
 
-  // Schedule: show now + next 3, or next 4 if no now
   const schedule: any[] = [];
   if (nowMatch) schedule.push(nowMatch);
 
@@ -155,7 +148,6 @@ function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: n
     schedule.push(m);
   }
 
-  // If we still have less than 4, we can top up with latest finished (optional)
   while (schedule.length < 4 && finished.length) {
     const candidate = finished[finished.length - (schedule.length + 1)];
     if (!candidate) break;
@@ -170,11 +162,15 @@ function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: n
   };
 }
 
-export async function GET(req: Request, { params }: { params: { courtId: string } }) {
-  const courtId = String(params?.courtId ?? "").trim();
-  if (!courtId) return json({ error: "Missing courtId" }, 400);
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ courtId: string }> }
+) {
+  const { courtId } = await context.params;
+  const courtIdStr = String(courtId ?? "").trim();
+  if (!courtIdStr) return json({ error: "Missing courtId" }, 400);
 
-  const upstreamUrl = `${RANKEDIN_LIVE_BASE}/court/${encodeURIComponent(courtId)}/scoreboard`;
+  const upstreamUrl = `${RANKEDIN_LIVE_BASE}/court/${encodeURIComponent(courtIdStr)}/scoreboard`;
 
   let upstream: any = null;
   try {
@@ -188,27 +184,23 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
   const courtNameLive = upstream?.details?.courtName ?? null;
 
   const [settingsRaw, event] = await Promise.all([
-    kv.get(settingsKey(courtId)).catch(() => ({})),
-    kv.get(eventKey(courtId)).catch(() => null)
+    kv.get(settingsKey(courtIdStr)).catch(() => ({})),
+    kv.get(eventKey(courtIdStr)).catch(() => null)
   ]);
 
   const settings = settingsRaw ?? {};
-  if (event) await kv.del(eventKey(courtId)).catch(() => {});
+  if (event) await kv.del(eventKey(courtIdStr)).catch(() => {});
 
-  // Optional tournament programming (from settings)
+  // Tournament programming (from settings)
   const tournamentId = settings?.tournamentId ? String(settings.tournamentId) : null;
-  const tournamentCourtName = settings?.tournamentCourtName
-    ? String(settings.tournamentCourtName)
-    : null;
+  const tournamentCourtName = settings?.tournamentCourtName ? String(settings.tournamentCourtName) : null;
   const tournamentLang = settings?.tournamentLang ? String(settings.tournamentLang) : "en";
 
-  // Optional pins
   const pinnedNowMatchId = settings?.pinnedNowMatchId ? safeNum(settings.pinnedNowMatchId, 0) : 0;
   const pinnedNextMatchId = settings?.pinnedNextMatchId ? safeNum(settings.pinnedNextMatchId, 0) : 0;
 
   let program: any = null;
 
-  // Fetch tournament matches via our own proxy to avoid CORS issues
   if (tournamentId && tournamentCourtName) {
     try {
       const proxyUrl = new URL(req.url);
@@ -221,7 +213,6 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
         const matches = Array.isArray(t?.Matches) ? t.Matches : [];
         const derived = deriveProgramFromTournament(matches, tournamentCourtName, Date.now());
 
-        // Apply pins if present
         if (pinnedNowMatchId) {
           const pinned = matches.map(normalizeTournamentMatch).find((m: any) => m.id === pinnedNowMatchId);
           if (pinned) derived.nowOnCourt = pinned;
@@ -239,11 +230,10 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
         };
       }
     } catch {
-      // ignore – program stays null
+      // ignore
     }
   }
 
-  // LIVE match (court endpoint)
   const liveMatch = upstream?.liveMatch ?? null;
 
   if (liveMatch?.state) {
@@ -257,7 +247,6 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
     const p1Points = current ? safeNum(current.p1, 0) : 0;
     const p2Points = current ? safeNum(current.p2, 0) : 0;
 
-    // Games won (RankedIn stores these here)
     const p1Games = safeNum(score.firstParticipantScore, 0);
     const p2Games = safeNum(score.secondParticipantScore, 0);
 
@@ -297,10 +286,10 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
     };
 
     return json({
-      courtId,
+      courtId: courtIdStr,
       courtName: courtNameLive,
       match,
-      program, // <— now/next/schedule derived from tournament (if configured)
+      program,
       overlay: {
         settings,
         event: event ?? null
@@ -308,7 +297,6 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
     });
   }
 
-  // Not live: show nextMatch as a "stub match" so overlay can still render names
   const nextMatch = upstream?.nextMatch ?? null;
 
   if (nextMatch) {
@@ -338,7 +326,7 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
     };
 
     return json({
-      courtId,
+      courtId: courtIdStr,
       courtName: courtNameLive,
       match,
       program,
@@ -350,7 +338,7 @@ export async function GET(req: Request, { params }: { params: { courtId: string 
   }
 
   return json({
-    courtId,
+    courtId: courtIdStr,
     courtName: courtNameLive,
     match: null,
     program,
