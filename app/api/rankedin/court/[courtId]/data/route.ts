@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { kv } from "../../../../../lib/kv";
 
-const RANKEDIN_BASE = "https://live.rankedin.com/api/v1";
+const RANKEDIN_LIVE_BASE = "https://live.rankedin.com/api/v1";
 
 const settingsKey = (courtId: string) => `overlay:rankedin:court:${courtId}:settings`;
 const eventKey = (courtId: string) => `overlay:rankedin:court:${courtId}:event`;
@@ -18,6 +18,11 @@ function json(data: any, status = 200) {
   });
 }
 
+function safeNum(v: any, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function nameFromParticipants(p: any) {
   const arr = Array.isArray(p) ? p : [];
   const one = arr[0] ?? null;
@@ -26,6 +31,13 @@ function nameFromParticipants(p: any) {
   const last = one.lastName ?? "";
   const full = `${first} ${last}`.trim();
   return full || "—";
+}
+
+function countryFromParticipants(p: any) {
+  const arr = Array.isArray(p) ? p : [];
+  const one = arr[0] ?? null;
+  if (!one) return null;
+  return one.countryCode ?? null;
 }
 
 function fmtStatus(matchAction?: string) {
@@ -41,12 +53,11 @@ function pickCurrentGameRow(detailed: any[]) {
   const rows = Array.isArray(detailed) ? detailed : [];
   if (!rows.length) return null;
 
-  // Sort by index just in case
   const sorted = rows
     .map((g) => ({
-      index: Number(g.index ?? 0),
-      p1: Number(g.firstParticipantScore ?? 0),
-      p2: Number(g.secondParticipantScore ?? 0),
+      index: safeNum(g.index, 0),
+      p1: safeNum(g.firstParticipantScore, 0),
+      p2: safeNum(g.secondParticipantScore, 0),
       raw: g
     }))
     .sort((a, b) => a.index - b.index);
@@ -56,17 +67,114 @@ function pickCurrentGameRow(detailed: any[]) {
   // If the last row is 0-0, that is typically the active "new game"
   if (last && last.p1 === 0 && last.p2 === 0) return last;
 
-  // Otherwise, last row is the current one
   return last;
 }
 
-export async function GET(_req: Request, context: any) {
-  const params = await context?.params;
-  const courtId = String(params?.courtId ?? "");
+// Normalize a tournament match item into a simple "card" we can render on now/next/schedule.
+function normalizeTournamentMatch(m: any) {
+  const challenger = m?.Challenger ?? {};
+  const challenged = m?.Challenged ?? {};
 
+  return {
+    id: safeNum(m?.Id, 0),
+    date: typeof m?.Date === "string" ? m.Date : null,
+    court: typeof m?.Court === "string" ? m.Court : null,
+    className: typeof m?.TournamentClassName === "string" ? m.TournamentClassName : null,
+    draw: typeof m?.Draw === "string" ? m.Draw : null,
+
+    player1: {
+      name: challenger?.Name ?? "—",
+      country: challenger?.CountryShort ?? null
+    },
+    player2: {
+      name: challenged?.Name ?? "—",
+      country: challenged?.CountryShort ?? null
+    },
+
+    // these exist for finished matches:
+    result: m?.MatchResult?.Score
+      ? {
+          games1: safeNum(m.MatchResult.Score.FirstParticipantScore, 0),
+          games2: safeNum(m.MatchResult.Score.SecondParticipantScore, 0),
+          detailed: Array.isArray(m.MatchResult.Score.DetailedScoring)
+            ? m.MatchResult.Score.DetailedScoring.map((g: any) => ({
+                p1: safeNum(g?.FirstParticipantScore, 0),
+                p2: safeNum(g?.SecondParticipantScore, 0),
+                winner1: !!g?.IsFirstParticipantWinner
+              }))
+            : []
+        }
+      : null,
+
+    // Heuristic: in your sample, State=6 seems "finished".
+    // We'll also treat IsPlayed from MatchResult as finished if present.
+    isFinished: !!m?.MatchResult?.IsPlayed || safeNum(m?.State, 0) === 6,
+
+    isScheduled: !!m?.IsMatchScheduled
+  };
+}
+
+// Choose now/next/schedule for a given court from tournament matches.
+function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: number) {
+  const forCourt = matches
+    .filter((m) => (m?.Court ?? "") === courtName)
+    .map(normalizeTournamentMatch)
+    .filter((m) => m.id > 0)
+    .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
+  const upcoming = forCourt.filter((m) => !m.isFinished);
+  const finished = forCourt.filter((m) => m.isFinished);
+
+  // Candidate "now": closest match at/just before now that isn't finished, otherwise first upcoming.
+  const pastOrNowUpcoming = upcoming.filter((m) => {
+    const t = m.date ? Date.parse(m.date) : NaN;
+    return Number.isFinite(t) ? t <= nowTs : false;
+  });
+
+  const nowMatch =
+    (pastOrNowUpcoming.length ? pastOrNowUpcoming[pastOrNowUpcoming.length - 1] : null) ??
+    (upcoming[0] ?? null) ??
+    null;
+
+  // Next is next upcoming after "nowMatch"
+  let nextMatch: any = null;
+  if (nowMatch) {
+    const idx = upcoming.findIndex((m) => m.id === nowMatch.id);
+    nextMatch = idx >= 0 ? upcoming[idx + 1] ?? null : upcoming[0] ?? null;
+  } else {
+    nextMatch = upcoming[0] ?? null;
+  }
+
+  // Schedule: show now + next 3, or next 4 if no now
+  const schedule: any[] = [];
+  if (nowMatch) schedule.push(nowMatch);
+
+  for (const m of upcoming) {
+    if (schedule.length >= 4) break;
+    if (nowMatch && m.id === nowMatch.id) continue;
+    schedule.push(m);
+  }
+
+  // If we still have less than 4, we can top up with latest finished (optional)
+  while (schedule.length < 4 && finished.length) {
+    const candidate = finished[finished.length - (schedule.length + 1)];
+    if (!candidate) break;
+    schedule.push(candidate);
+  }
+
+  return {
+    courtName,
+    nowOnCourt: nowMatch,
+    nextOnCourt: nextMatch,
+    schedule
+  };
+}
+
+export async function GET(req: Request, { params }: { params: { courtId: string } }) {
+  const courtId = String(params?.courtId ?? "").trim();
   if (!courtId) return json({ error: "Missing courtId" }, 400);
 
-  const upstreamUrl = `${RANKEDIN_BASE}/court/${encodeURIComponent(courtId)}/scoreboard`;
+  const upstreamUrl = `${RANKEDIN_LIVE_BASE}/court/${encodeURIComponent(courtId)}/scoreboard`;
 
   let upstream: any = null;
   try {
@@ -77,15 +185,65 @@ export async function GET(_req: Request, context: any) {
     return json({ error: "Upstream fetch failed" }, 502);
   }
 
-  const courtName = upstream?.details?.courtName ?? null;
+  const courtNameLive = upstream?.details?.courtName ?? null;
 
-  const [settings, event] = await Promise.all([
+  const [settingsRaw, event] = await Promise.all([
     kv.get(settingsKey(courtId)).catch(() => ({})),
     kv.get(eventKey(courtId)).catch(() => null)
   ]);
 
+  const settings = settingsRaw ?? {};
   if (event) await kv.del(eventKey(courtId)).catch(() => {});
 
+  // Optional tournament programming (from settings)
+  const tournamentId = settings?.tournamentId ? String(settings.tournamentId) : null;
+  const tournamentCourtName = settings?.tournamentCourtName
+    ? String(settings.tournamentCourtName)
+    : null;
+  const tournamentLang = settings?.tournamentLang ? String(settings.tournamentLang) : "en";
+
+  // Optional pins
+  const pinnedNowMatchId = settings?.pinnedNowMatchId ? safeNum(settings.pinnedNowMatchId, 0) : 0;
+  const pinnedNextMatchId = settings?.pinnedNextMatchId ? safeNum(settings.pinnedNextMatchId, 0) : 0;
+
+  let program: any = null;
+
+  // Fetch tournament matches via our own proxy to avoid CORS issues
+  if (tournamentId && tournamentCourtName) {
+    try {
+      const proxyUrl = new URL(req.url);
+      proxyUrl.pathname = `/api/rankedin/tournament/${encodeURIComponent(tournamentId)}/matches`;
+      proxyUrl.search = `?lang=${encodeURIComponent(tournamentLang)}&readonly=true`;
+
+      const r = await fetch(proxyUrl.toString(), { cache: "no-store" });
+      if (r.ok) {
+        const t = await r.json();
+        const matches = Array.isArray(t?.Matches) ? t.Matches : [];
+        const derived = deriveProgramFromTournament(matches, tournamentCourtName, Date.now());
+
+        // Apply pins if present
+        if (pinnedNowMatchId) {
+          const pinned = matches.map(normalizeTournamentMatch).find((m: any) => m.id === pinnedNowMatchId);
+          if (pinned) derived.nowOnCourt = pinned;
+        }
+        if (pinnedNextMatchId) {
+          const pinned = matches.map(normalizeTournamentMatch).find((m: any) => m.id === pinnedNextMatchId);
+          if (pinned) derived.nextOnCourt = pinned;
+        }
+
+        program = {
+          tournamentId,
+          courtName: tournamentCourtName,
+          lang: tournamentLang,
+          ...derived
+        };
+      }
+    } catch {
+      // ignore – program stays null
+    }
+  }
+
+  // LIVE match (court endpoint)
   const liveMatch = upstream?.liveMatch ?? null;
 
   if (liveMatch?.state) {
@@ -96,39 +254,40 @@ export async function GET(_req: Request, context: any) {
     const detailed: any[] = Array.isArray(score.detailedResult) ? score.detailedResult : [];
     const current = pickCurrentGameRow(detailed);
 
-    const p1Points = current ? Number(current.p1) : 0;
-    const p2Points = current ? Number(current.p2) : 0;
+    const p1Points = current ? safeNum(current.p1, 0) : 0;
+    const p2Points = current ? safeNum(current.p2, 0) : 0;
 
-    // Games won (this is what RankedIn stores in firstParticipantScore/secondParticipantScore)
-    const p1Games = Number(score.firstParticipantScore ?? 0);
-    const p2Games = Number(score.secondParticipantScore ?? 0);
+    // Games won (RankedIn stores these here)
+    const p1Games = safeNum(score.firstParticipantScore, 0);
+    const p2Games = safeNum(score.secondParticipantScore, 0);
 
     const isFirstServing = !!state?.serve?.isFirstParticipantServing;
 
-    // Optional: expose gameScores if you want per-game later
     const gameScores = detailed
       .map((g) => ({
-        index: Number(g.index ?? 0),
-        p1: Number(g.firstParticipantScore ?? 0),
-        p2: Number(g.secondParticipantScore ?? 0)
+        index: safeNum(g.index, 0),
+        p1: safeNum(g.firstParticipantScore, 0),
+        p2: safeNum(g.secondParticipantScore, 0)
       }))
       .sort((a, b) => a.index - b.index);
 
     const match = {
       isLive: String(state.matchAction || "").toLowerCase() === "play",
       status: fmtStatus(state.matchAction),
-      durationSeconds: Number(state.totalDurationInSeconds ?? 0),
+      durationSeconds: safeNum(state.totalDurationInSeconds, 0),
       scheduledStartTime: null as string | null,
       gameNumber: current?.index ?? 1,
 
       player1: {
         name: nameFromParticipants(base.firstParticipant),
+        country: countryFromParticipants(base.firstParticipant),
         points: p1Points,
         games: p1Games,
         serving: isFirstServing
       },
       player2: {
         name: nameFromParticipants(base.secondParticipant),
+        country: countryFromParticipants(base.secondParticipant),
         points: p2Points,
         games: p2Games,
         serving: !isFirstServing
@@ -139,15 +298,17 @@ export async function GET(_req: Request, context: any) {
 
     return json({
       courtId,
-      courtName,
+      courtName: courtNameLive,
       match,
+      program, // <— now/next/schedule derived from tournament (if configured)
       overlay: {
-        settings: settings ?? {},
+        settings,
         event: event ?? null
       }
     });
   }
 
+  // Not live: show nextMatch as a "stub match" so overlay can still render names
   const nextMatch = upstream?.nextMatch ?? null;
 
   if (nextMatch) {
@@ -160,12 +321,14 @@ export async function GET(_req: Request, context: any) {
 
       player1: {
         name: nameFromParticipants(nextMatch.firstParticipant),
+        country: countryFromParticipants(nextMatch.firstParticipant),
         points: 0,
         games: 0,
         serving: false
       },
       player2: {
         name: nameFromParticipants(nextMatch.secondParticipant),
+        country: countryFromParticipants(nextMatch.secondParticipant),
         points: 0,
         games: 0,
         serving: false
@@ -176,10 +339,11 @@ export async function GET(_req: Request, context: any) {
 
     return json({
       courtId,
-      courtName,
+      courtName: courtNameLive,
       match,
+      program,
       overlay: {
-        settings: settings ?? {},
+        settings,
         event: event ?? null
       }
     });
@@ -187,10 +351,11 @@ export async function GET(_req: Request, context: any) {
 
   return json({
     courtId,
-    courtName,
+    courtName: courtNameLive,
     match: null,
+    program,
     overlay: {
-      settings: settings ?? {},
+      settings,
       event: event ?? null
     }
   });
