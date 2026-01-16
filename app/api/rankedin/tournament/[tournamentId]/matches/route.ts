@@ -1,5 +1,7 @@
 export const runtime = "nodejs";
 
+import { NextRequest } from "next/server";
+
 const RANKEDIN_TOURNAMENT_API =
   "https://api.rankedin.com/v1/tournament/GetMatchesSectionAsync";
 
@@ -14,17 +16,23 @@ function json(data: any, status = 200) {
   });
 }
 
-export async function GET(req: Request, { params }: { params: { tournamentId: string } }) {
-  const tournamentId = String(params?.tournamentId ?? "").trim();
-  if (!tournamentId) return json({ error: "Missing tournamentId" }, 400);
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ tournamentId: string }> }
+) {
+  const { tournamentId } = await context.params;
+  const tournamentIdStr = String(tournamentId ?? "").trim();
+  if (!tournamentIdStr) return json({ error: "Missing tournamentId" }, 400);
 
   const url = new URL(req.url);
   const LanguageCode = url.searchParams.get("lang") || "en";
   const IsReadonly = url.searchParams.get("readonly") || "true";
 
-  const upstreamUrl = `${RANKEDIN_TOURNAMENT_API}?Id=${encodeURIComponent(
-    tournamentId
-  )}&LanguageCode=${encodeURIComponent(LanguageCode)}&IsReadonly=${encodeURIComponent(IsReadonly)}`;
+  const upstreamUrl =
+    `${RANKEDIN_TOURNAMENT_API}` +
+    `?Id=${encodeURIComponent(tournamentIdStr)}` +
+    `&LanguageCode=${encodeURIComponent(LanguageCode)}` +
+    `&IsReadonly=${encodeURIComponent(IsReadonly)}`;
 
   try {
     const r = await fetch(upstreamUrl, { cache: "no-store" });
