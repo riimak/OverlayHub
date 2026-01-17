@@ -31,13 +31,13 @@ export default function ScoreboardPage({
 
         <style>{`
           :root{
-            /* Warm plates */
-            --bg: rgba(247, 241, 225, 0.92);
-            --ink: rgba(18, 18, 18, 0.92);
-            --line: rgba(18, 18, 18, 0.14);
+            /* Squasher.hr dark theme */
+            --bg: rgba(30, 41, 59, 0.95);
+            --ink: rgba(255, 255, 255, 0.95);
+            --line: rgba(100, 116, 139, 0.3);
 
-            /* Primary score capsule (deep charcoal) */
-            --cap: rgba(14, 14, 16, 0.92);
+            /* Primary score capsule */
+            --cap: rgba(15, 23, 42, 0.95);
             --capInk: rgba(255,255,255,0.96);
 
             /* Secondary pill (cool slate, softer contrast) */

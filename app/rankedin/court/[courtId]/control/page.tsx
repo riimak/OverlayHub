@@ -187,18 +187,19 @@ export default function ControlPage() {
   return (
     <div style={{ 
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
       fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       padding: "24px"
     }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Header */}
         <div style={{
-          background: "rgba(255, 255, 255, 0.98)",
+          background: "rgba(30, 41, 59, 0.95)",
           borderRadius: 16,
           padding: "24px 32px",
           marginBottom: 24,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 20px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.5)",
+          border: "1px solid rgba(100, 116, 139, 0.3)"
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
             <div>
@@ -207,7 +208,7 @@ export default function ControlPage() {
                 margin: 0,
                 marginBottom: 8,
                 fontWeight: 800,
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text"
@@ -219,12 +220,12 @@ export default function ControlPage() {
                 alignItems: "center", 
                 gap: 12,
                 fontSize: 15,
-                color: "#64748b"
+                color: "#94a3b8"
               }}>
                 <span>Court:</span>
                 <span style={{ 
-                  background: courtId ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" : "#ef4444",
-                  color: "white",
+                  background: courtId ? "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)" : "#ef4444",
+                  color: courtId ? "#0f172a" : "white",
                   padding: "4px 12px",
                   borderRadius: 6,
                   fontWeight: 700,
@@ -237,9 +238,9 @@ export default function ControlPage() {
 
             {status && (
               <div style={{
-                background: status.includes("failed") || status.includes("Failed") ? "#fef2f2" : "#f0fdf4",
-                border: `2px solid ${status.includes("failed") || status.includes("Failed") ? "#fecaca" : "#bbf7d0"}`,
-                color: status.includes("failed") || status.includes("Failed") ? "#991b1b" : "#166534",
+                background: status.includes("failed") || status.includes("Failed") ? "rgba(239, 68, 68, 0.15)" : "rgba(172, 239, 52, 0.15)",
+                border: `2px solid ${status.includes("failed") || status.includes("Failed") ? "#ef4444" : "#ACEF34"}`,
+                color: status.includes("failed") || status.includes("Failed") ? "#fca5a5" : "#ACEF34",
                 padding: "10px 16px",
                 borderRadius: 8,
                 fontSize: 14,
@@ -253,9 +254,9 @@ export default function ControlPage() {
           {!courtId && (
             <div style={{ 
               marginTop: 16,
-              background: "#fef2f2",
-              border: "2px solid #fecaca",
-              color: "#991b1b",
+              background: "rgba(239, 68, 68, 0.15)",
+              border: "2px solid #ef4444",
+              color: "#fca5a5",
               padding: "12px 16px",
               borderRadius: 8,
               fontWeight: 600,
@@ -268,11 +269,12 @@ export default function ControlPage() {
 
         {/* Tournament Programming Section */}
         <div style={{
-          background: "rgba(255, 255, 255, 0.98)",
+          background: "rgba(30, 41, 59, 0.95)",
           borderRadius: 16,
           padding: "28px 32px",
           marginBottom: 24,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 20px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.5)",
+          border: "1px solid rgba(100, 116, 139, 0.3)"
         }}>
           <div style={{ 
             display: "flex", 
@@ -283,7 +285,7 @@ export default function ControlPage() {
             <div style={{
               width: 40,
               height: 40,
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              background: "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)",
               borderRadius: 10,
               display: "flex",
               alignItems: "center",
@@ -293,10 +295,10 @@ export default function ControlPage() {
               🏆
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1e293b" }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f1f5f9" }}>
                 Tournament Programming
               </h2>
-              <p style={{ margin: 0, fontSize: 13, color: "#64748b", marginTop: 4 }}>
+              <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", marginTop: 4 }}>
                 Connect to RankedIn tournament data (optional)
               </p>
             </div>
@@ -304,7 +306,7 @@ export default function ControlPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16 }}>
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 Tournament ID
               </span>
               <input
@@ -313,20 +315,22 @@ export default function ControlPage() {
                 placeholder="e.g. 61922"
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 Language
               </span>
               <select
@@ -334,13 +338,14 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, tournamentLang: e.target.value })}
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
-                  background: "white",
+                  background: "rgba(15, 23, 42, 0.5)",
                   cursor: "pointer",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  color: "#f1f5f9"
                 }}
               >
                 <option value="en">English</option>
@@ -378,7 +383,7 @@ export default function ControlPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, marginTop: 16 }}>
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 Court Name (from tournament)
               </span>
               <select
@@ -386,13 +391,14 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, tournamentCourtName: e.target.value })}
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
-                  background: "white",
+                  background: "rgba(15, 23, 42, 0.5)",
                   cursor: "pointer",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  color: "#f1f5f9"
                 }}
               >
                 <option value="">— select court —</option>
@@ -407,7 +413,7 @@ export default function ControlPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginTop: 16 }}>
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 📍 Pin NOW Match (optional)
               </span>
               <select
@@ -415,13 +421,14 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, pinnedNowMatchId: e.target.value })}
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
-                  background: "white",
+                  background: "rgba(15, 23, 42, 0.5)",
                   cursor: "pointer",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  color: "#f1f5f9"
                 }}
               >
                 <option value="">(auto)</option>
@@ -434,7 +441,7 @@ export default function ControlPage() {
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 ⏭️ Pin NEXT Match (optional)
               </span>
               <select
@@ -442,13 +449,14 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, pinnedNextMatchId: e.target.value })}
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
-                  background: "white",
+                  background: "rgba(15, 23, 42, 0.5)",
                   cursor: "pointer",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  color: "#f1f5f9"
                 }}
               >
                 <option value="">(auto)</option>
@@ -489,47 +497,53 @@ export default function ControlPage() {
           <div style={{ 
             marginTop: 20,
             padding: 14,
-            background: "#f8fafc",
+            background: "rgba(15, 23, 42, 0.5)",
             borderRadius: 8,
             fontSize: 13,
-            color: "#64748b",
-            lineHeight: 1.6
+            color: "#94a3b8",
+            lineHeight: 1.6,
+            border: "1px solid rgba(100, 116, 139, 0.3)"
           }}>
-            <strong style={{ color: "#475569" }}>💡 Tip:</strong> After saving, your data API will include <code style={{ 
-              background: "#e2e8f0",
+            <strong style={{ color: "#cbd5e1" }}>💡 Tip:</strong> After saving, your data API will include <code style={{ 
+              background: "rgba(100, 116, 139, 0.3)",
               padding: "2px 6px",
               borderRadius: 4,
               fontFamily: "monospace",
-              fontSize: 12
+              fontSize: 12,
+              color: "#ACEF34"
             }}>program</code> object with <code style={{ 
-              background: "#e2e8f0",
+              background: "rgba(100, 116, 139, 0.3)",
               padding: "2px 6px",
               borderRadius: 4,
               fontFamily: "monospace",
-              fontSize: 12
+              fontSize: 12,
+              color: "#ACEF34"
             }}>nowOnCourt</code>, <code style={{ 
-              background: "#e2e8f0",
+              background: "rgba(100, 116, 139, 0.3)",
               padding: "2px 6px",
               borderRadius: 4,
               fontFamily: "monospace",
-              fontSize: 12
+              fontSize: 12,
+              color: "#ACEF34"
             }}>nextOnCourt</code>, and <code style={{ 
-              background: "#e2e8f0",
+              background: "rgba(100, 116, 139, 0.3)",
               padding: "2px 6px",
               borderRadius: 4,
               fontFamily: "monospace",
-              fontSize: 12
+              fontSize: 12,
+              color: "#ACEF34"
             }}>schedule</code>.
           </div>
         </div>
 
         {/* Display Settings Section */}
         <div style={{
-          background: "rgba(255, 255, 255, 0.98)",
+          background: "rgba(30, 41, 59, 0.95)",
           borderRadius: 16,
           padding: "28px 32px",
           marginBottom: 24,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 20px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.5)",
+          border: "1px solid rgba(100, 116, 139, 0.3)"
         }}>
           <div style={{ 
             display: "flex", 
@@ -540,7 +554,7 @@ export default function ControlPage() {
             <div style={{
               width: 40,
               height: 40,
-              background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+              background: "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)",
               borderRadius: 10,
               display: "flex",
               alignItems: "center",
@@ -550,10 +564,10 @@ export default function ControlPage() {
               🎨
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1e293b" }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f1f5f9" }}>
                 Display Settings
               </h2>
-              <p style={{ margin: 0, fontSize: 13, color: "#64748b", marginTop: 4 }}>
+              <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", marginTop: 4 }}>
                 Customize overlay appearance and behavior
               </p>
             </div>
@@ -561,7 +575,7 @@ export default function ControlPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 View Mode
               </span>
               <select
@@ -569,13 +583,14 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, viewMode: e.target.value })}
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
-                  background: "white",
+                  background: "rgba(15, 23, 42, 0.5)",
                   cursor: "pointer",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  color: "#f1f5f9"
                 }}
               >
                 <option value="auto">🤖 Auto (scoreboard if live)</option>
@@ -586,7 +601,7 @@ export default function ControlPage() {
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 Tournament Name
               </span>
               <input
@@ -595,20 +610,22 @@ export default function ControlPage() {
                 placeholder="e.g. SQUASHer ChristMASAkr 2025"
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
             <label style={{ display: "flex", flexDirection: "column", gridColumn: "1 / -1" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 Subtitle (optional)
               </span>
               <input
@@ -617,15 +634,17 @@ export default function ControlPage() {
                 placeholder="e.g. Court Ajnc"
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
@@ -634,10 +653,11 @@ export default function ControlPage() {
               alignItems: "center", 
               gap: 10,
               padding: "12px 16px",
-              background: "#f8fafc",
+              background: "rgba(15, 23, 42, 0.5)",
               borderRadius: 8,
               cursor: "pointer",
-              userSelect: "none"
+              userSelect: "none",
+              border: "1px solid rgba(100, 116, 139, 0.3)"
             }}>
               <input
                 type="checkbox"
@@ -645,13 +665,13 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, swap: e.target.checked })}
                 style={{ width: 20, height: 20, cursor: "pointer" }}
               />
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#475569" }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#cbd5e1" }}>
                 🔄 Swap Players (Left ↔ Right)
               </span>
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 👤 Name Override (Left)
               </span>
               <input
@@ -660,20 +680,22 @@ export default function ControlPage() {
                 placeholder="Optional"
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 👤 Name Override (Right)
               </span>
               <input
@@ -682,20 +704,22 @@ export default function ControlPage() {
                 placeholder="Optional"
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 🎨 Left Player Color
               </span>
               <input
@@ -704,20 +728,22 @@ export default function ControlPage() {
                 placeholder="#0b3aa6"
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 🎨 Right Player Color
               </span>
               <input
@@ -726,20 +752,22 @@ export default function ControlPage() {
                 placeholder="#c66a08"
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 💫 Logo Opacity
               </span>
               <input
@@ -751,20 +779,22 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, logoOpacity: Number(e.target.value) })}
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 📏 Logo Scale
               </span>
               <input
@@ -776,15 +806,17 @@ export default function ControlPage() {
                 onChange={(e) => setSettings({ ...settings, logoScale: Number(e.target.value) })}
                 style={{ 
                   padding: "10px 14px",
-                  border: "2px solid #e2e8f0",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
                   borderRadius: 8,
                   fontSize: 14,
                   outline: "none",
                   transition: "border-color 0.2s",
-                  fontFamily: "inherit"
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#667eea"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
               />
             </label>
           </div>
@@ -792,10 +824,11 @@ export default function ControlPage() {
 
         {/* Actions & Quick Links Section */}
         <div style={{
-          background: "rgba(255, 255, 255, 0.98)",
+          background: "rgba(30, 41, 59, 0.95)",
           borderRadius: 16,
           padding: "28px 32px",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 20px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.5)",
+          border: "1px solid rgba(100, 116, 139, 0.3)"
         }}>
           <div style={{ 
             display: "flex", 
@@ -806,7 +839,7 @@ export default function ControlPage() {
             <div style={{
               width: 40,
               height: 40,
-              background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+              background: "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)",
               borderRadius: 10,
               display: "flex",
               alignItems: "center",
@@ -816,10 +849,10 @@ export default function ControlPage() {
               ⚡
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1e293b" }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f1f5f9" }}>
                 Actions & Quick Links
               </h2>
-              <p style={{ margin: 0, fontSize: 13, color: "#64748b", marginTop: 4 }}>
+              <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", marginTop: 4 }}>
                 Save settings and trigger animations
               </p>
             </div>
@@ -931,7 +964,7 @@ export default function ControlPage() {
               <h3 style={{ 
                 fontSize: 16, 
                 fontWeight: 700, 
-                color: "#475569",
+                color: "#f1f5f9",
                 marginBottom: 16,
                 display: "flex",
                 alignItems: "center",
@@ -942,7 +975,7 @@ export default function ControlPage() {
 
               <p style={{
                 fontSize: 13,
-                color: "#64748b",
+                color: "#94a3b8",
                 marginBottom: 16,
                 lineHeight: 1.6
               }}>
@@ -1072,15 +1105,15 @@ export default function ControlPage() {
               </div>
 
               <div style={{
-                background: "#f1f5f9",
-                border: "2px dashed #cbd5e1",
+                background: "rgba(15, 23, 42, 0.5)",
+                border: "2px dashed rgba(100, 116, 139, 0.3)",
                 borderRadius: 10,
                 padding: "16px",
                 fontSize: 13,
-                color: "#475569",
+                color: "#94a3b8",
                 lineHeight: 1.6
               }}>
-                <strong>💡 How it works:</strong> The unified display uses Server-Sent Events (SSE) for instant updates. Click any button above to switch views remotely without page refresh. Open the unified display in a separate window or OBS browser source.
+                <strong style={{ color: "#cbd5e1" }}>💡 How it works:</strong> The unified display uses Server-Sent Events (SSE) for instant updates. Click any button above to switch views remotely without page refresh. Open the unified display in a separate window or OBS browser source.
               </div>
 
               <div style={{
@@ -1092,7 +1125,7 @@ export default function ControlPage() {
               <h3 style={{ 
                 fontSize: 16, 
                 fontWeight: 700, 
-                color: "#475569",
+                color: "#f1f5f9",
                 marginBottom: 16,
                 display: "flex",
                 alignItems: "center",
@@ -1103,7 +1136,7 @@ export default function ControlPage() {
 
               <p style={{
                 fontSize: 13,
-                color: "#64748b",
+                color: "#94a3b8",
                 marginBottom: 12,
                 lineHeight: 1.6
               }}>
@@ -1248,7 +1281,7 @@ export default function ControlPage() {
               <h3 style={{ 
                 fontSize: 16, 
                 fontWeight: 700, 
-                color: "#475569",
+                color: "#f1f5f9",
                 marginBottom: 16,
                 display: "flex",
                 alignItems: "center",

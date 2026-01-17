@@ -34,22 +34,21 @@ export default function NowMatchPage({
 
         <style>{`
           :root{
-            /* Live match colors */
-            --bg: rgba(247, 241, 225, 0.92);
-            --ink: rgba(18, 18, 18, 0.92);
-            --line: rgba(18, 18, 18, 0.14);
+            /* Squasher.hr dark theme */
+            --bg: rgba(30, 41, 59, 0.95);
+            --ink: rgba(255, 255, 255, 0.95);
+            --line: rgba(100, 116, 139, 0.3);
 
-            /* Deep slate for card */
-            --slate: rgba(15, 23, 42, 0.92);
-            --slateInk: rgba(255, 255, 255, 0.96);
-            --slateBorder: rgba(255, 255, 255, 0.12);
-            --slateLabel: rgba(255, 255, 255, 0.70);
+            /* Primary accent - mint green */
+            --accent: #ACEF34;
+            --accentDark: #8BC428;
 
             /* Live indicator */
-            --liveRed: rgba(239, 68, 68, 0.96);
+            --liveRed: #EF4444;
             --liveGlow: 0 0 16px rgba(239, 68, 68, 0.6);
 
-            --shadow: 0 12px 32px rgba(0,0,0,0.40);
+            /* Shadow */
+            --shadow: 0 12px 26px rgba(0,0,0,0.5);
           }
 
           html, body {
@@ -69,12 +68,12 @@ export default function NowMatchPage({
           .card {
             width: 820px;
             margin: 0 auto;
-            border-radius: 6px;
+            border-radius: 3px;
             overflow: hidden;
             box-shadow: var(--shadow);
-            background: var(--slate);
-            border: 1px solid var(--slateBorder);
-            color: var(--slateInk);
+            background: var(--bg);
+            border: 1px solid var(--line);
+            color: var(--ink);
           }
 
           .cardInner {
