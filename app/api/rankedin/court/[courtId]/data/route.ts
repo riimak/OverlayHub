@@ -8,6 +8,27 @@ const RANKEDIN_LIVE_BASE = "https://live.rankedin.com/api/v1";
 const settingsKey = (courtId: string) => `overlay:rankedin:court:${courtId}:settings`;
 const eventKey = (courtId: string) => `overlay:rankedin:court:${courtId}:event`;
 
+type OverlaySettings = {
+  // existing
+  swap?: boolean;
+  name1?: string | null;
+  name2?: string | null;
+  leftColor?: string | null;
+  rightColor?: string | null;
+  logoOpacity?: number | null;
+  logoScale?: number | null;
+  viewMode?: "auto" | "scoreboard" | "slate" | "hidden";
+  tournamentName?: string | null;
+  subtitle?: string | null;
+
+  // tournament programming
+  tournamentId?: string | null;
+  tournamentLang?: string | null;
+  tournamentCourtName?: string | null;
+  pinnedNowMatchId?: string | number | null;
+  pinnedNextMatchId?: string | number | null;
+};
+
 function json(data: any, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -49,7 +70,7 @@ function fmtStatus(matchAction?: string) {
   return "NOT LIVE";
 }
 
-// Pick the "current game" row in a robust way
+// Pick the "current game" row
 function pickCurrentGameRow(detailed: any[]) {
   const rows = Array.isArray(detailed) ? detailed : [];
   if (!rows.length) return null;
@@ -58,20 +79,16 @@ function pickCurrentGameRow(detailed: any[]) {
     .map((g) => ({
       index: safeNum(g.index, 0),
       p1: safeNum(g.firstParticipantScore, 0),
-      p2: safeNum(g.secondParticipantScore, 0),
-      raw: g
+      p2: safeNum(g.secondParticipantScore, 0)
     }))
     .sort((a, b) => a.index - b.index);
 
   const last = sorted[sorted.length - 1];
-
-  // If the last row is 0-0, that is typically the active "new game"
   if (last && last.p1 === 0 && last.p2 === 0) return last;
-
   return last;
 }
 
-// Normalize a tournament match item into a simple "card"
+// Normalize tournament match into a simple card
 function normalizeTournamentMatch(m: any) {
   const challenger = m?.Challenger ?? {};
   const challenged = m?.Challenged ?? {};
@@ -83,14 +100,8 @@ function normalizeTournamentMatch(m: any) {
     className: typeof m?.TournamentClassName === "string" ? m.TournamentClassName : null,
     draw: typeof m?.Draw === "string" ? m.Draw : null,
 
-    player1: {
-      name: challenger?.Name ?? "—",
-      country: challenger?.CountryShort ?? null
-    },
-    player2: {
-      name: challenged?.Name ?? "—",
-      country: challenged?.CountryShort ?? null
-    },
+    player1: { name: challenger?.Name ?? "—", country: challenger?.CountryShort ?? null },
+    player2: { name: challenged?.Name ?? "—", country: challenged?.CountryShort ?? null },
 
     result: m?.MatchResult?.Score
       ? {
@@ -154,12 +165,7 @@ function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: n
     schedule.push(candidate);
   }
 
-  return {
-    courtName,
-    nowOnCourt: nowMatch,
-    nextOnCourt: nextMatch,
-    schedule
-  };
+  return { courtName, nowOnCourt: nowMatch, nextOnCourt: nextMatch, schedule };
 }
 
 export async function GET(
@@ -183,21 +189,22 @@ export async function GET(
 
   const courtNameLive = upstream?.details?.courtName ?? null;
 
+  // IMPORTANT: cast kv payload away from unknown
   const [settingsRaw, event] = await Promise.all([
     kv.get(settingsKey(courtIdStr)).catch(() => ({})),
     kv.get(eventKey(courtIdStr)).catch(() => null)
   ]);
 
-  const settings = settingsRaw ?? {};
+  const settings: OverlaySettings = (settingsRaw as any) ?? {};
   if (event) await kv.del(eventKey(courtIdStr)).catch(() => {});
 
   // Tournament programming (from settings)
-  const tournamentId = settings?.tournamentId ? String(settings.tournamentId) : null;
-  const tournamentCourtName = settings?.tournamentCourtName ? String(settings.tournamentCourtName) : null;
-  const tournamentLang = settings?.tournamentLang ? String(settings.tournamentLang) : "en";
+  const tournamentId = settings.tournamentId ? String(settings.tournamentId) : null;
+  const tournamentCourtName = settings.tournamentCourtName ? String(settings.tournamentCourtName) : null;
+  const tournamentLang = settings.tournamentLang ? String(settings.tournamentLang) : "en";
 
-  const pinnedNowMatchId = settings?.pinnedNowMatchId ? safeNum(settings.pinnedNowMatchId, 0) : 0;
-  const pinnedNextMatchId = settings?.pinnedNextMatchId ? safeNum(settings.pinnedNextMatchId, 0) : 0;
+  const pinnedNowMatchId = settings.pinnedNowMatchId ? safeNum(settings.pinnedNowMatchId, 0) : 0;
+  const pinnedNextMatchId = settings.pinnedNextMatchId ? safeNum(settings.pinnedNextMatchId, 0) : 0;
 
   let program: any = null;
 
@@ -222,12 +229,7 @@ export async function GET(
           if (pinned) derived.nextOnCourt = pinned;
         }
 
-        program = {
-          tournamentId,
-          courtName: tournamentCourtName,
-          lang: tournamentLang,
-          ...derived
-        };
+        program = { tournamentId, courtName: tournamentCourtName, lang: tournamentLang, ...derived };
       }
     } catch {
       // ignore
@@ -290,10 +292,7 @@ export async function GET(
       courtName: courtNameLive,
       match,
       program,
-      overlay: {
-        settings,
-        event: event ?? null
-      }
+      overlay: { settings, event: event ?? null }
     });
   }
 
@@ -330,10 +329,7 @@ export async function GET(
       courtName: courtNameLive,
       match,
       program,
-      overlay: {
-        settings,
-        event: event ?? null
-      }
+      overlay: { settings, event: event ?? null }
     });
   }
 
@@ -342,9 +338,6 @@ export async function GET(
     courtName: courtNameLive,
     match: null,
     program,
-    overlay: {
-      settings,
-      event: event ?? null
-    }
+    overlay: { settings, event: event ?? null }
   });
 }
