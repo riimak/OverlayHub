@@ -42,7 +42,10 @@ export default function ControlPage() {
     tournamentLang: "en",
     tournamentCourtName: "",
     pinnedNowMatchId: "",
-    pinnedNextMatchId: ""
+    pinnedNextMatchId: "",
+
+    // Active display view
+    activeDisplay: "scoreboard" // scoreboard, now, next, schedule
   });
 
   const [saving, setSaving] = useState(false);
@@ -934,10 +937,175 @@ export default function ControlPage() {
                 alignItems: "center",
                 gap: 8
               }}>
-                🖥️ Open Overlays
+                🖥️ Switch Display View
+              </h3>
+
+              <p style={{
+                fontSize: 13,
+                color: "#64748b",
+                marginBottom: 12,
+                lineHeight: 1.6
+              }}>
+                Use these buttons to change what's shown on the unified display screen. Click a view below, then open the <strong>Display</strong> link.
+              </p>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 24 }}>
+                <button
+                  onClick={() => {
+                    const newSettings = { ...settings, activeDisplay: "scoreboard" };
+                    setSettings(newSettings);
+                    save(newSettings);
+                  }}
+                  disabled={!courtId}
+                  style={{ 
+                    padding: "14px 18px",
+                    background: settings.activeDisplay === "scoreboard" 
+                      ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" 
+                      : "#f1f5f9",
+                    color: settings.activeDisplay === "scoreboard" ? "white" : "#475569",
+                    border: settings.activeDisplay === "scoreboard" ? "2px solid #667eea" : "2px solid #e2e8f0",
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: !courtId ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: settings.activeDisplay === "scoreboard" ? "0 4px 6px rgba(102, 126, 234, 0.3)" : "none"
+                  }}
+                  onMouseEnter={(e) => courtId && (e.currentTarget.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  📊 Scoreboard
+                </button>
+
+                <button
+                  onClick={() => {
+                    const newSettings = { ...settings, activeDisplay: "now" };
+                    setSettings(newSettings);
+                    save(newSettings);
+                  }}
+                  disabled={!courtId}
+                  style={{ 
+                    padding: "14px 18px",
+                    background: settings.activeDisplay === "now" 
+                      ? "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" 
+                      : "#f1f5f9",
+                    color: settings.activeDisplay === "now" ? "white" : "#475569",
+                    border: settings.activeDisplay === "now" ? "2px solid #f093fb" : "2px solid #e2e8f0",
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: !courtId ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: settings.activeDisplay === "now" ? "0 4px 6px rgba(240, 147, 251, 0.3)" : "none"
+                  }}
+                  onMouseEnter={(e) => courtId && (e.currentTarget.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  🎯 Now on Court
+                </button>
+
+                <button
+                  onClick={() => {
+                    const newSettings = { ...settings, activeDisplay: "next" };
+                    setSettings(newSettings);
+                    save(newSettings);
+                  }}
+                  disabled={!courtId}
+                  style={{ 
+                    padding: "14px 18px",
+                    background: settings.activeDisplay === "next" 
+                      ? "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" 
+                      : "#f1f5f9",
+                    color: settings.activeDisplay === "next" ? "white" : "#475569",
+                    border: settings.activeDisplay === "next" ? "2px solid #4facfe" : "2px solid #e2e8f0",
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: !courtId ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: settings.activeDisplay === "next" ? "0 4px 6px rgba(79, 172, 254, 0.3)" : "none"
+                  }}
+                  onMouseEnter={(e) => courtId && (e.currentTarget.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  ⏭️ Next Match
+                </button>
+
+                <button
+                  onClick={() => {
+                    const newSettings = { ...settings, activeDisplay: "schedule" };
+                    setSettings(newSettings);
+                    save(newSettings);
+                  }}
+                  disabled={!courtId}
+                  style={{ 
+                    padding: "14px 18px",
+                    background: settings.activeDisplay === "schedule" 
+                      ? "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" 
+                      : "#f1f5f9",
+                    color: settings.activeDisplay === "schedule" ? "white" : "#475569",
+                    border: settings.activeDisplay === "schedule" ? "2px solid #fa709a" : "2px solid #e2e8f0",
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: !courtId ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: settings.activeDisplay === "schedule" ? "0 4px 6px rgba(250, 112, 154, 0.3)" : "none"
+                  }}
+                  onMouseEnter={(e) => courtId && (e.currentTarget.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  📅 Schedule
+                </button>
+              </div>
+
+              <div style={{
+                height: 1,
+                background: "linear-gradient(90deg, transparent, #e2e8f0, transparent)",
+                margin: "24px 0"
+              }} />
+
+              <h3 style={{ 
+                fontSize: 16, 
+                fontWeight: 700, 
+                color: "#475569",
+                marginBottom: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 8
+              }}>
+                🔗 Open Overlay Pages
               </h3>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                <a
+                  href={`/rankedin/court/${courtId}/display?refresh=1000&scale=1`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ 
+                    padding: "14px 18px",
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: "0 6px 10px rgba(102, 126, 234, 0.4)",
+                    textAlign: "center",
+                    textDecoration: "none",
+                    display: "block",
+                    position: "relative"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  <div style={{ fontSize: 18, marginBottom: 4 }}>🎬</div>
+                  <div>Unified Display</div>
+                  <div style={{ fontSize: 11, opacity: 0.9, marginTop: 2 }}>Controlled by buttons above</div>
+                </a>
+
                 <a
                   href={`/rankedin/court/${courtId}/scoreboard?refresh=1000&scale=1`}
                   target="_blank"
@@ -955,7 +1123,8 @@ export default function ControlPage() {
                     boxShadow: "0 4px 6px rgba(102, 126, 234, 0.3)",
                     textAlign: "center",
                     textDecoration: "none",
-                    display: "block"
+                    display: "block",
+                    opacity: 0.85
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
                   onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
@@ -980,7 +1149,8 @@ export default function ControlPage() {
                     boxShadow: "0 4px 6px rgba(240, 147, 251, 0.3)",
                     textAlign: "center",
                     textDecoration: "none",
-                    display: "block"
+                    display: "block",
+                    opacity: 0.85
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
                   onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
@@ -1005,7 +1175,8 @@ export default function ControlPage() {
                     boxShadow: "0 4px 6px rgba(79, 172, 254, 0.3)",
                     textAlign: "center",
                     textDecoration: "none",
-                    display: "block"
+                    display: "block",
+                    opacity: 0.85
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
                   onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
@@ -1030,7 +1201,8 @@ export default function ControlPage() {
                     boxShadow: "0 4px 6px rgba(250, 112, 154, 0.3)",
                     textAlign: "center",
                     textDecoration: "none",
-                    display: "block"
+                    display: "block",
+                    opacity: 0.85
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
                   onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
