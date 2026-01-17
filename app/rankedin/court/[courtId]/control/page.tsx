@@ -1102,6 +1102,36 @@ export default function ControlPage() {
                 >
                   📅 Schedule
                 </button>
+
+                <button
+                  onClick={() => {
+                    const next = { ...settings, activeDisplay: "results" };
+                    setSettings(next);
+                    save(next);
+                  }}
+                  disabled={saving}
+                  style={{ 
+                    padding: "14px 18px",
+                    background: settings.activeDisplay === "results"
+                      ? "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)"
+                      : "linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)",
+                    color: settings.activeDisplay === "results" ? "#0f172a" : "white",
+                    border: "none",
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: saving ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: settings.activeDisplay === "results"
+                      ? "0 4px 6px rgba(172, 239, 52, 0.3)"
+                      : "0 2px 4px rgba(148, 163, 184, 0.2)",
+                    opacity: saving ? 0.6 : 1
+                  }}
+                  onMouseEnter={(e) => !saving && (e.currentTarget.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  🏆 Results
+                </button>
               </div>
 
               <div style={{
@@ -1269,6 +1299,31 @@ export default function ControlPage() {
                   onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                 >
                   📅 Schedule
+                </a>
+
+                <a
+                  href={`/rankedin/court/${courtId}/results?refresh=1000&scale=1`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ 
+                    padding: "16px 18px",
+                    background: "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)",
+                    color: "#0f172a",
+                    border: "none",
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: "0 4px 6px rgba(172, 239, 52, 0.3)",
+                    textDecoration: "none",
+                    textAlign: "center",
+                    display: "block"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  🏆 Results
                 </a>
               </div>
 

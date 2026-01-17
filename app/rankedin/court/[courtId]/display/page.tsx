@@ -90,6 +90,9 @@ export default function UnifiedDisplayPage({
       case 'schedule':
         targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/schedule?' + params.toString();
         break;
+      case 'results':
+        targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/results?' + params.toString();
+        break;
       default:
         targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
     }

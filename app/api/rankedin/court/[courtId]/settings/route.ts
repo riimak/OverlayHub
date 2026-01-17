@@ -90,7 +90,8 @@ export async function POST(req: Request, context: any) {
       body.activeDisplay === "scoreboard" ||
       body.activeDisplay === "now" ||
       body.activeDisplay === "next" ||
-      body.activeDisplay === "schedule"
+      body.activeDisplay === "schedule" ||
+      body.activeDisplay === "results"
         ? body.activeDisplay
         : undefined
   };
