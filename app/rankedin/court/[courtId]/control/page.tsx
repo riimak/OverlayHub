@@ -1044,60 +1044,6 @@ export default function ControlPage() {
       </div>
     </div>
 
-      {/* OLD BUTTONS - REMOVE BELOW */}
-      <div style={{ display: "none", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
-        <button onClick={() => save()} disabled={saving || !courtId} style={{ padding: "10px 14px" }}>
-          {saving ? "Saving..." : "Save"}
-        </button>
-
-        <button onClick={() => trigger("flash")} disabled={!courtId} style={{ padding: "10px 14px" }}>
-          Flash score
-        </button>
-
-        <button onClick={() => trigger("slide")} disabled={!courtId} style={{ padding: "10px 14px" }}>
-          Slide in
-        </button>
-
-        {courtId && (
-          <>
-            <a href={dataUrl} target="_blank" rel="noreferrer" style={{ padding: "10px 14px" }}>
-              View data JSON
-            </a>
-            <a
-              href={`/rankedin/court/${courtId}/scoreboard?refresh=1000&scale=1`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ padding: "10px 14px" }}
-            >
-              Open scoreboard overlay
-            </a>
-            <a
-              href={`/rankedin/court/${courtId}/now?refresh=1000&scale=1`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ padding: "10px 14px" }}
-            >
-              Open “Now on court”
-            </a>
-            <a
-              href={`/rankedin/court/${courtId}/next?refresh=1000&scale=1`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ padding: "10px 14px" }}
-            >
-              Open “Next on court”
-            </a>
-            <a
-              href={`/rankedin/court/${courtId}/schedule?refresh=1000&scale=1`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ padding: "10px 14px" }}
-            >
-              Open “Schedule”
-            </a>
-          </>
-        )}
-      </div>
-    </div>
   );
 }
+
