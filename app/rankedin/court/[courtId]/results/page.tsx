@@ -44,6 +44,9 @@ export default function ResultsPage() {
   const [matches, setMatches] = useState<TournamentMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const MATCHES_PER_PAGE = 12;
 
   useEffect(() => {
     const id = courtIdFromPathname(window.location.pathname);
@@ -110,6 +113,23 @@ export default function ResultsPage() {
 
     fetchData();
   }, [courtId]);
+
+  // Auto-rotate carousel
+  useEffect(() => {
+    if (matches.length === 0) return;
+
+    const totalPages = Math.ceil(matches.length / MATCHES_PER_PAGE);
+    if (totalPages <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentPage((prev) => {
+        const next = prev + 1;
+        return next >= totalPages ? 0 : next;
+      });
+    }, 10000); // Rotate every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [matches.length, MATCHES_PER_PAGE]);
 
   const formatTime = (dateStr: string) => {
     try {
@@ -273,6 +293,37 @@ export default function ResultsPage() {
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 12px;
         }
+
+        .carousel {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .pagination {
+          display: flex;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 20px;
+        }
+
+        .paginationDot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(100, 116, 139, 0.4);
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .paginationDot.active {
+          background: var(--accent);
+          width: 24px;
+          border-radius: 4px;
+        }
+
+        .paginationDot:hover {
+          background: rgba(172, 239, 52, 0.6);
+        }
       `}</style>
 
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -309,7 +360,12 @@ export default function ResultsPage() {
             </div>
           </div>
         ) : (
-          <div className="resultsGrid">{matches.map((match) => {
+          <>
+            <div className="carousel">
+              <div className="resultsGrid">
+                {matches
+                  .slice(currentPage * MATCHES_PER_PAGE, (currentPage + 1) * MATCHES_PER_PAGE)
+                  .map((match) => {
             const result = match.MatchResult;
             const score = result?.Score;
             const challenger = match.Challenger?.Name || "Player 1";
@@ -363,7 +419,21 @@ export default function ResultsPage() {
               </div>
             );
           })}
-          </div>
+              </div>
+            </div>
+
+            {Math.ceil(matches.length / MATCHES_PER_PAGE) > 1 && (
+              <div className="pagination">
+                {Array.from({ length: Math.ceil(matches.length / MATCHES_PER_PAGE) }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`paginationDot ${currentPage === idx ? "active" : ""}`}
+                    onClick={() => setCurrentPage(idx)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
