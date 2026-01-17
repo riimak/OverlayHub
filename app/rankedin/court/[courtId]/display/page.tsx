@@ -43,18 +43,20 @@ export default function UnifiedDisplayPage({
           #container {
             transform: scale(${safeScale});
             transform-origin: top center;
+            width: 100%;
+            min-height: 100vh;
+          }
+
+          .hidden {
+            display: none !important;
           }
         `}</style>
       </head>
 
       <body>
         <div id="container">
-          <iframe id="displayFrame" style={{
-            width: "100vw",
-            height: "100vh",
-            border: "none",
-            display: "block"
-          }}></iframe>
+          {/* Container that will be populated dynamically */}
+          <div id="dynamicContent"></div>
         </div>
 
         <script
@@ -67,21 +69,27 @@ export default function UnifiedDisplayPage({
 
   const refreshMs = ${JSON.stringify(Math.max(250, safeRefresh))};
   const settingsAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/settings';
-  const frame = document.getElementById('displayFrame');
+  const dataAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/data';
   
   let currentView = '';
 
-  async function checkAndUpdateView() {
+  async function updateDisplay() {
     try {
-      const r = await fetch(settingsAPI, { cache: 'no-store' });
-      if (!r.ok) return;
+      // Fetch both settings and data
+      const [settingsRes, dataRes] = await Promise.all([
+        fetch(settingsAPI, { cache: 'no-store' }),
+        fetch(dataAPI, { cache: 'no-store' })
+      ]);
       
-      const settings = await r.json();
+      if (!settingsRes.ok || !dataRes.ok) return;
+      
+      const settings = await settingsRes.json();
+      const data = await dataRes.json();
+      
       const activeDisplay = settings.activeDisplay || 'scoreboard';
       
-      if (currentView !== activeDisplay) {
-        currentView = activeDisplay;
-        
+      // If view changed, reload the page to switch to the new view
+      if (currentView && currentView !== activeDisplay) {
         const baseUrl = window.location.origin;
         const params = new URLSearchParams(window.location.search);
         
@@ -103,15 +111,19 @@ export default function UnifiedDisplayPage({
             targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
         }
         
-        frame.src = targetUrl;
+        window.location.href = targetUrl;
+        return;
       }
+      
+      currentView = activeDisplay;
+      
     } catch (e) {
       console.error('Failed to check active display:', e);
     }
   }
 
-  checkAndUpdateView();
-  setInterval(checkAndUpdateView, refreshMs);
+  updateDisplay();
+  setInterval(updateDisplay, refreshMs);
 })();
             `
           }}
