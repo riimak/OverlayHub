@@ -83,9 +83,30 @@ export async function POST(req: Request, context: any) {
     pinnedNextMatchId:
       body.pinnedNextMatchId !== undefined && body.pinnedNextMatchId !== null && String(body.pinnedNextMatchId).trim()
         ? String(body.pinnedNextMatchId).trim()
-        : null
+        : null,
+
+    // NEW: active display for unified view
+    activeDisplay:
+      body.activeDisplay === "scoreboard" ||
+      body.activeDisplay === "now" ||
+      body.activeDisplay === "next" ||
+      body.activeDisplay === "schedule"
+        ? body.activeDisplay
+        : undefined
   };
 
   await kv.set(key(courtId), next);
+
+  // Broadcast SSE event if activeDisplay changed
+  if (next.activeDisplay) {
+    try {
+      const { broadcastDisplayChange } = await import("../events/route");
+      broadcastDisplayChange(courtId, next.activeDisplay);
+    } catch (e) {
+      // SSE module not available or failed
+      console.warn("Failed to broadcast display change:", e);
+    }
+  }
+
   return Response.json({ ok: true });
 }

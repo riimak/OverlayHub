@@ -36,28 +36,27 @@ export default function UnifiedDisplayPage({
         <style>{`
           html, body {
             margin:0;
+            padding:0;
             background: transparent;
             font-family: ${JSON.stringify(font)}, Inter, Arial, sans-serif;
+            overflow: hidden;
           }
 
-          #container {
+          #contentFrame {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
             transform: scale(${safeScale});
             transform-origin: top center;
-            width: 100%;
-            min-height: 100vh;
-          }
-
-          .hidden {
-            display: none !important;
           }
         `}</style>
       </head>
 
       <body>
-        <div id="container">
-          {/* Container that will be populated dynamically */}
-          <div id="dynamicContent"></div>
-        </div>
+        <iframe id="contentFrame" title="Overlay Display"></iframe>
 
         <script
           dangerouslySetInnerHTML={{
@@ -67,65 +66,81 @@ export default function UnifiedDisplayPage({
   const courtId = parts[2];
   if (!courtId) return;
 
-  const refreshMs = ${JSON.stringify(Math.max(250, safeRefresh))};
-  const settingsAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/settings';
-  
+  const params = new URLSearchParams(window.location.search);
+  const iframe = document.getElementById('contentFrame');
   let currentView = '';
-  let isInitialized = false;
-
-  async function updateDisplay() {
-    try {
-      const settingsRes = await fetch(settingsAPI, { cache: 'no-store' });
-      
-      if (!settingsRes.ok) {
-        console.error('Failed to fetch settings');
-        return;
-      }
-      
-      const settings = await settingsRes.json();
-      const activeDisplay = settings.activeDisplay || 'scoreboard';
-      
-      // On initial load or when view changes, redirect to the correct page
-      if (!isInitialized || (currentView && currentView !== activeDisplay)) {
-        const baseUrl = window.location.origin;
-        const params = new URLSearchParams(window.location.search);
-        
-        let targetUrl = '';
-        switch(activeDisplay) {
-          case 'scoreboard':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
-            break;
-          case 'now':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/now?' + params.toString();
-            break;
-          case 'next':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/next?' + params.toString();
-            break;
-          case 'schedule':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/schedule?' + params.toString();
-            break;
-          default:
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
-        }
-        
-        console.log('Redirecting to:', targetUrl);
-        window.location.href = targetUrl;
-        return;
-      }
-      
-      currentView = activeDisplay;
-      isInitialized = true;
-      
-    } catch (e) {
-      console.error('Failed to check active display:', e);
-    }
-  }
-
-  // Initial redirect immediately
-  updateDisplay();
   
-  // Then check periodically for changes
-  setInterval(updateDisplay, refreshMs);
+  function updateView(view) {
+    if (currentView === view) return;
+    
+    console.log('Switching to view:', view);
+    currentView = view;
+    
+    let targetUrl = '';
+    switch(view) {
+      case 'scoreboard':
+        targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
+        break;
+      case 'now':
+        targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/now?' + params.toString();
+        break;
+      case 'next':
+        targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/next?' + params.toString();
+        break;
+      case 'schedule':
+        targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/schedule?' + params.toString();
+        break;
+      default:
+        targetUrl = '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
+    }
+    
+    iframe.src = targetUrl;
+  }
+  
+  // Fetch initial view from settings
+  const settingsAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/settings';
+  fetch(settingsAPI, { cache: 'no-store' })
+    .then(res => res.json())
+    .then(settings => {
+      const initialView = settings.activeDisplay || 'scoreboard';
+      console.log('Initial view from settings:', initialView);
+      updateView(initialView);
+    })
+    .catch(err => {
+      console.error('Failed to fetch initial settings:', err);
+      updateView('scoreboard');
+    });
+  
+  // Connect to SSE endpoint for real-time updates
+  const eventsAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/events';
+  const eventSource = new EventSource(eventsAPI);
+  
+  eventSource.onmessage = function(event) {
+    try {
+      const data = JSON.parse(event.data);
+      
+      if (data.type === 'connected') {
+        console.log('✅ Connected to SSE stream');
+        return;
+      }
+      
+      if (data.type === 'display' && data.view) {
+        console.log('📡 SSE received view change:', data.view);
+        updateView(data.view);
+      }
+    } catch (e) {
+      console.error('Failed to parse SSE message:', e);
+    }
+  };
+  
+  eventSource.onerror = function(err) {
+    console.error('❌ SSE connection error:', err);
+  };
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', function() {
+    eventSource.close();
+  });
 })();
             `
           }}
