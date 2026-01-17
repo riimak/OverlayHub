@@ -109,10 +109,6 @@ export default function ResultsPage() {
     };
 
     fetchData();
-
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
   }, [courtId]);
 
   const formatTime = (dateStr: string) => {
@@ -192,72 +188,62 @@ export default function ResultsPage() {
           background: var(--bg);
           border: 1px solid var(--line);
           border-radius: 3px;
-          padding: 20px;
+          padding: 12px;
           box-shadow: var(--shadow);
           color: var(--ink);
-          margin-bottom: 16px;
         }
 
         .matchHeader {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 16px;
-          padding-bottom: 12px;
+          margin-bottom: 8px;
+          padding-bottom: 6px;
           border-bottom: 1px solid var(--line);
         }
 
         .matchTime {
-          font-size: 14px;
+          font-size: 11px;
           color: #94a3b8;
           font-weight: 600;
         }
 
         .matchDuration {
-          font-size: 13px;
+          font-size: 10px;
           color: #64748b;
         }
 
         .players {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 6px;
         }
 
         .playerRow {
           display: grid;
-          grid-template-columns: 1fr auto auto;
-          gap: 16px;
+          grid-template-columns: 1fr auto;
+          gap: 8px;
           align-items: center;
         }
 
         .playerName {
-          font-size: 18px;
+          font-size: 14px;
           font-weight: 600;
           color: var(--ink);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .playerName.winner {
           color: var(--accent);
         }
 
-        .gameScore {
-          font-size: 16px;
-          font-weight: 700;
-          color: #94a3b8;
-          min-width: 28px;
-          text-align: center;
-        }
-
-        .gameScore.winner {
-          color: var(--accent);
-        }
-
         .matchScore {
-          font-size: 28px;
+          font-size: 20px;
           font-weight: 800;
           color: #94a3b8;
-          min-width: 50px;
+          min-width: 30px;
           text-align: center;
         }
 
@@ -267,32 +253,38 @@ export default function ResultsPage() {
 
         .detailedScores {
           display: flex;
-          gap: 8px;
-          margin-top: 8px;
+          gap: 4px;
+          margin-top: 6px;
           flex-wrap: wrap;
         }
 
         .gameChip {
           background: rgba(100, 116, 139, 0.2);
           border: 1px solid var(--line);
-          padding: 4px 12px;
-          border-radius: 4px;
-          font-size: 14px;
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-size: 11px;
           font-weight: 600;
           color: #cbd5e1;
         }
+
+        .resultsGrid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 12px;
+        }
       `}</style>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
         <div style={{
-          marginBottom: 32,
+          marginBottom: 24,
           textAlign: "center"
         }}>
           <h1 style={{
-            fontSize: 48,
+            fontSize: 36,
             fontWeight: 800,
             margin: 0,
-            marginBottom: 8,
+            marginBottom: 6,
             background: "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -301,7 +293,7 @@ export default function ResultsPage() {
             Match Results
           </h1>
           <p style={{
-            fontSize: 16,
+            fontSize: 14,
             color: "#94a3b8",
             margin: 0
           }}>
@@ -317,7 +309,7 @@ export default function ResultsPage() {
             </div>
           </div>
         ) : (
-          matches.map((match) => {
+          <div className="resultsGrid">{matches.map((match) => {
             const result = match.MatchResult;
             const score = result?.Score;
             const challenger = match.Challenger?.Name || "Player 1";
@@ -370,7 +362,8 @@ export default function ResultsPage() {
                 )}
               </div>
             );
-          })
+          })}
+          </div>
         )}
       </div>
     </div>
