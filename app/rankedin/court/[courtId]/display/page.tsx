@@ -69,27 +69,24 @@ export default function UnifiedDisplayPage({
 
   const refreshMs = ${JSON.stringify(Math.max(250, safeRefresh))};
   const settingsAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/settings';
-  const dataAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/data';
   
   let currentView = '';
+  let isInitialized = false;
 
   async function updateDisplay() {
     try {
-      // Fetch both settings and data
-      const [settingsRes, dataRes] = await Promise.all([
-        fetch(settingsAPI, { cache: 'no-store' }),
-        fetch(dataAPI, { cache: 'no-store' })
-      ]);
+      const settingsRes = await fetch(settingsAPI, { cache: 'no-store' });
       
-      if (!settingsRes.ok || !dataRes.ok) return;
+      if (!settingsRes.ok) {
+        console.error('Failed to fetch settings');
+        return;
+      }
       
       const settings = await settingsRes.json();
-      const data = await dataRes.json();
-      
       const activeDisplay = settings.activeDisplay || 'scoreboard';
       
-      // If view changed, reload the page to switch to the new view
-      if (currentView && currentView !== activeDisplay) {
+      // On initial load or when view changes, redirect to the correct page
+      if (!isInitialized || (currentView && currentView !== activeDisplay)) {
         const baseUrl = window.location.origin;
         const params = new URLSearchParams(window.location.search);
         
@@ -111,18 +108,23 @@ export default function UnifiedDisplayPage({
             targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
         }
         
+        console.log('Redirecting to:', targetUrl);
         window.location.href = targetUrl;
         return;
       }
       
       currentView = activeDisplay;
+      isInitialized = true;
       
     } catch (e) {
       console.error('Failed to check active display:', e);
     }
   }
 
+  // Initial redirect immediately
   updateDisplay();
+  
+  // Then check periodically for changes
   setInterval(updateDisplay, refreshMs);
 })();
             `
