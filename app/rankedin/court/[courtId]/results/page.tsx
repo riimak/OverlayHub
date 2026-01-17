@@ -78,8 +78,8 @@ export default function ResultsPage() {
           return;
         }
 
-        // Fetch tournament matches
-        const url = `https://api.rankedin.com/${tournamentLang}/tournaments/${tournamentId}/matches`;
+        // Fetch tournament matches via our API
+        const url = `/api/rankedin/tournament/${encodeURIComponent(tournamentId)}/matches?lang=${encodeURIComponent(tournamentLang)}&readonly=true`;
         const matchesRes = await fetch(url, { cache: "no-store" });
 
         if (!matchesRes.ok) {
