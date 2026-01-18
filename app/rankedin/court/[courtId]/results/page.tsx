@@ -45,6 +45,7 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const MATCHES_PER_PAGE = 12;
 
@@ -122,10 +123,14 @@ export default function ResultsPage() {
     if (totalPages <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentPage((prev) => {
-        const next = prev + 1;
-        return next >= totalPages ? 0 : next;
-      });
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentPage((prev) => {
+          const next = prev + 1;
+          return next >= totalPages ? 0 : next;
+        });
+        setIsTransitioning(false);
+      }, 300); // Match CSS transition duration
     }, 10000); // Rotate every 10 seconds
 
     return () => clearInterval(interval);
@@ -292,6 +297,12 @@ export default function ResultsPage() {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 12px;
+          opacity: 1;
+          transition: opacity 0.3s ease-in-out;
+        }
+
+        .resultsGrid.fade {
+          opacity: 0;
         }
 
         .carousel {
@@ -362,7 +373,7 @@ export default function ResultsPage() {
         ) : (
           <>
             <div className="carousel">
-              <div className="resultsGrid">
+              <div className={`resultsGrid ${isTransitioning ? 'fade' : ''}`}>
                 {matches
                   .slice(currentPage * MATCHES_PER_PAGE, (currentPage + 1) * MATCHES_PER_PAGE)
                   .map((match) => {
@@ -428,7 +439,15 @@ export default function ResultsPage() {
                   <div
                     key={idx}
                     className={`paginationDot ${currentPage === idx ? "active" : ""}`}
-                    onClick={() => setCurrentPage(idx)}
+                    onClick={() => {
+                      if (idx !== currentPage) {
+                        setIsTransitioning(true);
+                        setTimeout(() => {
+                          setCurrentPage(idx);
+                          setIsTransitioning(false);
+                        }, 300);
+                      }
+                    }}
                   />
                 ))}
               </div>
