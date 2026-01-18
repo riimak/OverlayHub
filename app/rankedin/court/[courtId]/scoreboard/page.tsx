@@ -328,14 +328,9 @@ export default function ScoreboardPage({
       }
 
       if (!match && viewMode === 'auto') {
-        // nothing to show -> slate placeholder
+        // nothing to show -> hide everything
         bar.classList.add('hidden');
-        slate.classList.remove('hidden');
-        el('tname').textContent = (settings.tournamentName || 'TOURNAMENT').toUpperCase();
-        el('subtitle').textContent = settings.subtitle || (data.courtName ? ('Court: ' + data.courtName) : '—');
-        el('nextL').textContent = '—';
-        el('nextR').textContent = '—';
-        el('nextTime').textContent = 'Starts: —';
+        slate.classList.add('hidden');
       } else if (showScoreboard) {
         bar.classList.remove('hidden');
         slate.classList.add('hidden');

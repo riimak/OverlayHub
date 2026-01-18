@@ -91,7 +91,10 @@ export default function NextMatchPage({
             font-weight: 900;
             letter-spacing: 0.6px;
             text-transform: uppercase;
-            color: var(--slateInk);
+            background: linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
           }
 
           .cardSubtitle {
