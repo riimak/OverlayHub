@@ -624,6 +624,54 @@ export default function ControlPage() {
               />
             </label>
 
+            <label style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
+                Tournament Date
+              </span>
+              <input
+                value={settings.tournamentDate ?? ""}
+                onChange={(e) => setSettings({ ...settings, tournamentDate: e.target.value })}
+                placeholder="e.g. January 18-20, 2026"
+                style={{ 
+                  padding: "10px 14px",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
+                }}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
+              />
+            </label>
+
+            <label style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
+                Tournament Venue
+              </span>
+              <input
+                value={settings.tournamentVenue ?? ""}
+                onChange={(e) => setSettings({ ...settings, tournamentVenue: e.target.value })}
+                placeholder="e.g. Sports Arena Zagreb"
+                style={{ 
+                  padding: "10px 14px",
+                  border: "2px solid rgba(100, 116, 139, 0.3)",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                  fontFamily: "inherit",
+                  background: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9"
+                }}
+                onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
+              />
+            </label>
+
             <label style={{ display: "flex", flexDirection: "column", gridColumn: "1 / -1" }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
                 Subtitle (optional)
@@ -985,6 +1033,36 @@ export default function ControlPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 24 }}>
                 <button
                   onClick={() => {
+                    const next = { ...settings, activeDisplay: "welcome" };
+                    setSettings(next);
+                    save(next);
+                  }}
+                  disabled={saving}
+                  style={{ 
+                    padding: "14px 18px",
+                    background: settings.activeDisplay === "welcome"
+                      ? "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)"
+                      : "linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)",
+                    color: settings.activeDisplay === "welcome" ? "#0f172a" : "white",
+                    border: "none",
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: saving ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: settings.activeDisplay === "welcome"
+                      ? "0 4px 6px rgba(172, 239, 52, 0.3)"
+                      : "0 2px 4px rgba(148, 163, 184, 0.2)",
+                    opacity: saving ? 0.6 : 1
+                  }}
+                  onMouseEnter={(e) => !saving && (e.currentTarget.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  👋 Welcome
+                </button>
+
+                <button
+                  onClick={() => {
                     const next = { ...settings, activeDisplay: "scoreboard" };
                     setSettings(next);
                     save(next);
@@ -1199,6 +1277,31 @@ export default function ControlPage() {
                   <div style={{ fontSize: 20, marginBottom: 4 }}>🎬</div>
                   <div>Unified Display</div>
                   <div style={{ fontSize: 11, opacity: 0.9, marginTop: 4 }}>Real-time remote control</div>
+                </a>
+
+                <a
+                  href={`/rankedin/court/${courtId}/welcome?refresh=1000&scale=1`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ 
+                    padding: "16px 18px",
+                    background: "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)",
+                    color: "#0f172a",
+                    border: "none",
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    boxShadow: "0 4px 6px rgba(172, 239, 52, 0.3)",
+                    textDecoration: "none",
+                    textAlign: "center",
+                    display: "block"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  👋 Welcome
                 </a>
 
                 <a
