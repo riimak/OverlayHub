@@ -19,6 +19,8 @@ type OverlaySettings = {
   logoScale?: number | null;
   viewMode?: "auto" | "scoreboard" | "slate" | "hidden";
   tournamentName?: string | null;
+  tournamentDate?: string | null;
+  tournamentVenue?: string | null;
   subtitle?: string | null;
 
   // tournament programming

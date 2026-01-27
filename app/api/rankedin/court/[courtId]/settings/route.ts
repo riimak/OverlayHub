@@ -61,6 +61,12 @@ export async function POST(req: Request, context: any) {
     tournamentName:
       typeof body.tournamentName === "string" && body.tournamentName.trim() ? body.tournamentName.trim() : null,
 
+    tournamentDate:
+      typeof body.tournamentDate === "string" && body.tournamentDate.trim() ? body.tournamentDate.trim() : null,
+
+    tournamentVenue:
+      typeof body.tournamentVenue === "string" && body.tournamentVenue.trim() ? body.tournamentVenue.trim() : null,
+
     subtitle: typeof body.subtitle === "string" && body.subtitle.trim() ? body.subtitle.trim() : null,
 
     // NEW: tournament programming
@@ -91,7 +97,8 @@ export async function POST(req: Request, context: any) {
       body.activeDisplay === "now" ||
       body.activeDisplay === "next" ||
       body.activeDisplay === "schedule" ||
-      body.activeDisplay === "results"
+      body.activeDisplay === "results" ||
+      body.activeDisplay === "welcome"
         ? body.activeDisplay
         : undefined
   };

@@ -222,21 +222,43 @@ export default function WelcomePage({
       const data = await r.json();
       
       const settings = (data.overlay && data.overlay.settings) ? data.overlay.settings : {};
+      const program = data.program || null;
       
-      if (JSON.stringify(settings) !== JSON.stringify(lastSettings)) {
-        lastSettings = settings;
-        render(settings);
+      const renderData = {
+        settings,
+        program,
+        tournamentId: program?.tournamentId || settings?.tournamentId || null
+      };
+      
+      if (JSON.stringify(renderData) !== JSON.stringify(lastSettings)) {
+        lastSettings = renderData;
+        render(renderData);
       }
     } catch (err) {
       console.error('Fetch error:', err);
     }
   }
 
-  function render(settings) {
-    const tournamentName = settings?.tournamentName || settings?.tournamentTitle || 'Tournament Name';
+  function render(data) {
+    const settings = data.settings || {};
+    const program = data.program || null;
+    
+    // Use settings first, fall back to sensible defaults
+    const tournamentName = settings?.tournamentName || 'Tournament';
     const tournamentDate = settings?.tournamentDate || '';
     const tournamentVenue = settings?.tournamentVenue || '';
-    const subtitle = settings?.tournamentSubtitle || settings?.subtitle || '';
+    const subtitle = settings?.subtitle || '';
+    
+    // Show program stats if available
+    let programInfo = '';
+    if (program) {
+      const upcomingCount = program.upcomingMatches?.length || 0;
+      const finishedCount = program.finishedMatches?.length || 0;
+      const totalCount = upcomingCount + finishedCount;
+      if (totalCount > 0) {
+        programInfo = totalCount + ' match' + (totalCount !== 1 ? 'es' : '') + ' scheduled';
+      }
+    }
 
     document.getElementById('tournamentName').textContent = tournamentName;
     
@@ -255,8 +277,9 @@ export default function WelcomePage({
     }
 
     const subtitleEl = document.getElementById('tournamentSubtitle');
-    if (subtitle) {
-      subtitleEl.textContent = subtitle;
+    const displayText = subtitle || programInfo;
+    if (displayText) {
+      subtitleEl.textContent = displayText;
       subtitleEl.style.display = 'block';
     } else {
       subtitleEl.style.display = 'none';
