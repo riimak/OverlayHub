@@ -35,6 +35,8 @@ export default function ControlPage() {
     logoOpacity: 0.7,
     logoScale: 0.9,
     tournamentName: "",
+    tournamentDate: "",
+    tournamentVenue: "",
     subtitle: "",
 
     // NEW: tournament programming
@@ -161,6 +163,33 @@ export default function ControlPage() {
 
       setTournamentMatches(matches);
       setTournamentCourts(courts);
+
+      // Extract tournament metadata from the response
+      const tournamentInfo: any = {};
+      if (data?.Name) {
+        tournamentInfo.tournamentName = String(data.Name);
+      }
+      if (data?.StartDate || data?.EndDate) {
+        const start = data.StartDate ? new Date(data.StartDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+        const end = data.EndDate ? new Date(data.EndDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+        if (start && end && start !== end) {
+          tournamentInfo.tournamentDate = `${start} - ${end}`;
+        } else if (start) {
+          tournamentInfo.tournamentDate = start;
+        }
+      }
+      if (data?.VenueName) {
+        tournamentInfo.tournamentVenue = String(data.VenueName);
+      } else if (data?.City && data?.Country) {
+        tournamentInfo.tournamentVenue = `${data.City}, ${data.Country}`;
+      } else if (data?.City) {
+        tournamentInfo.tournamentVenue = String(data.City);
+      }
+
+      // Update settings with tournament info if found
+      if (Object.keys(tournamentInfo).length > 0) {
+        setSettings((prev: any) => ({ ...prev, ...tournamentInfo }));
+      }
 
       setStatus(`Loaded tournament: ${matches.length} matches.`);
     } finally {
