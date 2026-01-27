@@ -166,9 +166,27 @@ export default function ControlPage() {
       const data = await matchesRes.json();
       const matches: TournamentMatch[] = Array.isArray(data?.Matches) ? data.Matches : [];
 
-      const courts = Array.from(
-        new Set(matches.map((m) => String(m?.Court ?? "")).filter(Boolean))
-      ).sort((a, b) => a.localeCompare(b));
+      // Collect courts from both matches and courts API
+      const courtSet = new Set<string>();
+      
+      // Add courts from matches
+      matches.forEach((m) => {
+        const court = String(m?.Court ?? "").trim();
+        if (court) courtSet.add(court);
+      });
+
+      // Add courts from courts API
+      if (courtsRes && courtsRes.ok) {
+        const courtsData = await courtsRes.json();
+        if (Array.isArray(courtsData)) {
+          courtsData.forEach((court: any) => {
+            const courtName = String(court?.CourtName ?? "").trim();
+            if (courtName) courtSet.add(courtName);
+          });
+        }
+      }
+
+      const courts = Array.from(courtSet).sort((a, b) => a.localeCompare(b));
 
       setTournamentMatches(matches);
       setTournamentCourts(courts);
@@ -181,28 +199,32 @@ export default function ControlPage() {
       if (metadataRes && metadataRes.ok) {
         metadata = await metadataRes.json();
       }
+      
+      // Get courts data for venue extraction
+      let courtsData: any[] = [];
+      if (courtsRes && courtsRes.ok) {
+        courtsData = await courtsRes.json();
+        if (!Array.isArray(courtsData)) courtsData = [];
+      }
 
       // Tournament Name - prioritize metadata API
       if (metadata?.name) {
         tournamentInfo.tournamentName = String(metadata.name);
       } else if (data?.Name) {
-        tournamentInfo.tournamentName = String(data.Name);
-      }
-
-      // Tournament Date - extract from description or use StartDate/EndDate
-      if (metadata?.featureDescription) {
-        // Try to extract date from description (format: "... - 31/01/2026 12:00 - ...")
-        const dateMatch = metadata.featureDescription.match(/(\d{2}\/\d{2}\/\d{4})/);
-        if (dateMatch) {
-          const [day, month, year] = dateMatch[1].split('/');
-          const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-          tournamentInfo.tournamentDate = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        tournamentInfo.tournuse courts data if available
+      if (courtsData.length > 0) {
+        const firstCourt = courtsData[0];
+        
+        // Use LocationName as primary venue source
+        if (firstCourt?.LocationName) {
+          tournamentInfo.tournamentVenue = String(firstCourt.LocationName);
+        } else if (firstCourt?.City) {
+          tournamentInfo.tournamentVenue = String(firstCourt.City);
         }
-      }
-      
-      // Fallback to StartDate/EndDate if no date from description
-      if (!tournamentInfo.tournamentDate && (data?.StartDate || data?.EndDate)) {
-        const start = data.StartDate ? new Date(data.StartDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+
+        // If we don't have a subtitle and there's a court name, suggest it
+        if (!settings.subtitle && firstCourt?.CourtName && courts.length === 1) {
+          tournamentInfo.subtitle = String(firstCourt.CourtName);st start = data.StartDate ? new Date(data.StartDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
         const end = data.EndDate ? new Date(data.EndDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
         if (start && end && start !== end) {
           tournamentInfo.tournamentDate = `${start} - ${end}`;
