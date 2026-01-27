@@ -169,6 +169,33 @@ export default function ScoreboardPage({
             opacity: 0.0; /* set to 1 to show */
           }
 
+          /* Game/Match Ball Indicator */
+          .ballStatus {
+            width: 820px;
+            margin: 6px auto 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .ballStatus.hidden {
+            display: none;
+          }
+
+          .ballBadge {
+            padding: 6px 18px;
+            border-radius: 3px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            box-shadow: var(--shadow);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+          }
+
           .hidden { display:none; }
 
           /* ===== SLATE (optional when not live) ===== */
@@ -246,6 +273,11 @@ export default function ScoreboardPage({
           <div className="status" id="statusLine">
             <span id="st">LIVE</span>
             <span id="tm">00:00</span>
+          </div>
+
+          {/* Game/Match Ball Indicator */}
+          <div className="ballStatus hidden" id="ballStatus">
+            <div className="ballBadge" id="ballBadge">GAME BALL</div>
           </div>
 
           {/* SLATE */}
@@ -364,6 +396,52 @@ export default function ScoreboardPage({
         // Optional status line (currently hidden by CSS opacity)
         el('st').textContent = (match.status || (isLive ? 'LIVE' : 'NOT LIVE')).toUpperCase();
         el('tm').textContent = fmtTime(match.durationSeconds);
+
+        // Game/Match Ball Detection
+        const ballStatus = el('ballStatus');
+        const ballBadge = el('ballBadge');
+        
+        const leftPoints = left.points ?? 0;
+        const rightPoints = right.points ?? 0;
+        const leftGames = left.games ?? 0;
+        const rightGames = right.games ?? 0;
+        
+        // Determine if it's a game or match ball situation
+        // Standard squash: first to 11 points (win by 2)
+        const gameWinningPoint = 11;
+        const winByMargin = 2;
+        
+        // Determine match format: best of 3, 5, or 7
+        const bestOf = match.bestOf ?? 5; // default to best of 5
+        const matchWinningGames = Math.ceil(bestOf / 2); // 2 for bo3, 3 for bo5, 4 for bo7
+        
+        let ballText = null;
+        
+        // Check if either player is at match ball (one game away from winning and at game point)
+        const leftAtMatchBall = leftGames === matchWinningGames - 1 && 
+          (leftPoints >= gameWinningPoint - 1 && leftPoints >= rightPoints + winByMargin - 1);
+        const rightAtMatchBall = rightGames === matchWinningGames - 1 && 
+          (rightPoints >= gameWinningPoint - 1 && rightPoints >= leftPoints + winByMargin - 1);
+        
+        // Check if either player is at game ball (not match ball but at game point)
+        const leftAtGameBall = !leftAtMatchBall && 
+          (leftPoints >= gameWinningPoint - 1 && leftPoints >= rightPoints + winByMargin - 1);
+        const rightAtGameBall = !rightAtMatchBall && 
+          (rightPoints >= gameWinningPoint - 1 && rightPoints >= leftPoints + winByMargin - 1);
+        
+        if (leftAtMatchBall || rightAtMatchBall) {
+          ballText = 'MATCH BALL';
+        } else if (leftAtGameBall || rightAtGameBall) {
+          ballText = 'GAME BALL';
+        }
+        
+        if (ballText && isLive) {
+          ballBadge.textContent = ballText;
+          ballStatus.classList.remove('hidden');
+        } else {
+          ballStatus.classList.add('hidden');
+        }
+
 
       } else if (showSlate) {
         bar.classList.add('hidden');

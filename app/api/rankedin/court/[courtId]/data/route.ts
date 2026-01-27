@@ -262,12 +262,18 @@ export async function GET(
       }))
       .sort((a, b) => a.index - b.index);
 
+    // Infer match format from the number of games configured (3, 5, or 7)
+    // Default to 5 if cannot be determined
+    const bestOf = base.matchConfigurationId ? safeNum(base.matchConfigurationId, 5) : 
+                   (gameScores.length >= 5 ? 7 : gameScores.length >= 3 ? 5 : 3);
+
     const match = {
       isLive: String(state.matchAction || "").toLowerCase() === "play",
       status: fmtStatus(state.matchAction),
       durationSeconds: safeNum(state.totalDurationInSeconds, 0),
       scheduledStartTime: null as string | null,
       gameNumber: current?.index ?? 1,
+      bestOf,
 
       player1: {
         name: nameFromParticipants(base.firstParticipant),
