@@ -142,19 +142,28 @@ export default function ControlPage() {
     }
 
     setLoadingTournament(true);
-    setStatus("Loading tournament matches…");
+    setStatus("Loading tournament data…");
 
     try {
-      const r = await fetch(`/api/rankedin/tournament/${encodeURIComponent(tournamentId)}/matches?lang=${encodeURIComponent(lang)}&readonly=true`, {
-        cache: "no-store"
-      });
+      // Fetch matches, courts, and metadata in parallel
+      const [matchesRes, courtsRes, metadataRes] = await Promise.all([
+        fetch(`/api/rankedin/tournament/${encodeURIComponent(tournamentId)}/matches?lang=${encodeURIComponent(lang)}&readonly=true`, {
+          cache: "no-store"
+        }),
+        fetch(`https://api.rankedin.com/v1/tournament/GetCourtsAsync?tournamentId=${encodeURIComponent(tournamentId)}`, {
+          cache: "no-store"
+        }).catch(() => null),
+        fetch(`https://api.rankedin.com/v1/metadata/GetFeatureMetadataAsync?feature=Tournament&id=${encodeURIComponent(tournamentId)}&rankedinId=${encodeURIComponent(tournamentId)}&language=${encodeURIComponent(lang)}`, {
+          cache: "no-store"
+        }).catch(() => null)
+      ]);
 
-      if (!r.ok) {
-        setStatus(`Failed to load tournament (HTTP ${r.status}).`);
+      if (!matchesRes.ok) {
+        setStatus(`Failed to load tournament (HTTP ${matchesRes.status}).`);
         return;
       }
 
-      const data = await r.json();
+      const data = await matchesRes.json();
       const matches: TournamentMatch[] = Array.isArray(data?.Matches) ? data.Matches : [];
 
       const courts = Array.from(
@@ -164,12 +173,35 @@ export default function ControlPage() {
       setTournamentMatches(matches);
       setTournamentCourts(courts);
 
-      // Extract tournament metadata from the response
+      // Extract tournament metadata from all sources
       const tournamentInfo: any = {};
-      if (data?.Name) {
+      
+      // Get metadata if available
+      let metadata: any = null;
+      if (metadataRes && metadataRes.ok) {
+        metadata = await metadataRes.json();
+      }
+
+      // Tournament Name - prioritize metadata API
+      if (metadata?.name) {
+        tournamentInfo.tournamentName = String(metadata.name);
+      } else if (data?.Name) {
         tournamentInfo.tournamentName = String(data.Name);
       }
-      if (data?.StartDate || data?.EndDate) {
+
+      // Tournament Date - extract from description or use StartDate/EndDate
+      if (metadata?.featureDescription) {
+        // Try to extract date from description (format: "... - 31/01/2026 12:00 - ...")
+        const dateMatch = metadata.featureDescription.match(/(\d{2}\/\d{2}\/\d{4})/);
+        if (dateMatch) {
+          const [day, month, year] = dateMatch[1].split('/');
+          const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          tournamentInfo.tournamentDate = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        }
+      }
+      
+      // Fallback to StartDate/EndDate if no date from description
+      if (!tournamentInfo.tournamentDate && (data?.StartDate || data?.EndDate)) {
         const start = data.StartDate ? new Date(data.StartDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
         const end = data.EndDate ? new Date(data.EndDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
         if (start && end && start !== end) {
@@ -178,12 +210,44 @@ export default function ControlPage() {
           tournamentInfo.tournamentDate = start;
         }
       }
-      if (data?.VenueName) {
-        tournamentInfo.tournamentVenue = String(data.VenueName);
-      } else if (data?.City && data?.Country) {
-        tournamentInfo.tournamentVenue = `${data.City}, ${data.Country}`;
-      } else if (data?.City) {
-        tournamentInfo.tournamentVenue = String(data.City);
+
+      // Tournament Venue - try courts API first, then metadata description
+      if (courtsRes && courtsRes.ok) {
+        const courtsData = await courtsRes.json();
+        if (Array.isArray(courtsData) && courtsData.length > 0) {
+          const firstCourt = courtsData[0];
+          
+          // Use LocationName as primary venue source
+          if (firstCourt?.LocationName) {
+            tournamentInfo.tournamentVenue = String(firstCourt.LocationName);
+          } else if (firstCourt?.City) {
+            tournamentInfo.tournamentVenue = String(firstCourt.City);
+          }
+
+          // If we don't have a subtitle and there's a court name, suggest it
+          if (!settings.subtitle && firstCourt?.CourtName && courts.length === 1) {
+            tournamentInfo.subtitle = String(firstCourt.CourtName);
+          }
+        }
+      }
+
+      // Fallback venue extraction from metadata description
+      if (!tournamentInfo.tournamentVenue && metadata?.featureDescription) {
+        const locationMatch = metadata.featureDescription.match(/Location name:\s*([^-]+)/);
+        if (locationMatch) {
+          tournamentInfo.tournamentVenue = locationMatch[1].trim();
+        }
+      }
+
+      // Final fallback to matches API for venue
+      if (!tournamentInfo.tournamentVenue) {
+        if (data?.VenueName) {
+          tournamentInfo.tournamentVenue = String(data.VenueName);
+        } else if (data?.City && data?.Country) {
+          tournamentInfo.tournamentVenue = `${data.City}, ${data.Country}`;
+        } else if (data?.City) {
+          tournamentInfo.tournamentVenue = String(data.City);
+        }
       }
 
       // Update settings with tournament info if found
@@ -191,7 +255,7 @@ export default function ControlPage() {
         setSettings((prev: any) => ({ ...prev, ...tournamentInfo }));
       }
 
-      setStatus(`Loaded tournament: ${matches.length} matches.`);
+      setStatus(`Loaded tournament: ${matches.length} matches, ${courts.length} court(s).`);
     } finally {
       setLoadingTournament(false);
     }
