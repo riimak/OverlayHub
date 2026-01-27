@@ -221,9 +221,11 @@ export default function WelcomePage({
       }
       const data = await r.json();
       
-      if (JSON.stringify(data.settings) !== JSON.stringify(lastSettings)) {
-        lastSettings = data.settings;
-        render(data.settings);
+      const settings = (data.overlay && data.overlay.settings) ? data.overlay.settings : {};
+      
+      if (JSON.stringify(settings) !== JSON.stringify(lastSettings)) {
+        lastSettings = settings;
+        render(settings);
       }
     } catch (err) {
       console.error('Fetch error:', err);
