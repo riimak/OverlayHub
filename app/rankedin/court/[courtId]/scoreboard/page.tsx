@@ -110,8 +110,19 @@ export default function ScoreboardPage({
             bottom: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.3);
+            height: 5px;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.4), 0 0 12px currentColor;
+            opacity: 0.95;
+          }
+
+          .jerseyLine::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.3);
           }
 
           .cap {
@@ -247,7 +258,16 @@ export default function ScoreboardPage({
           }
 
           .slateInner { padding: 14px 16px; }
-          .slateTitle { font-size: 20px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
+          .slateTitle { 
+            font-size: 20px; 
+            font-weight: 900; 
+            letter-spacing: 0.5px; 
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          }
           .slateSub { margin-top: 4px; opacity: 0.85; font-weight: 800; }
           .slateRow {
             margin-top: 10px;
@@ -453,12 +473,62 @@ export default function ScoreboardPage({
         el('n1').textContent = String(nameLeft).toUpperCase();
         el('n2').textContent = String(nameRight).toUpperCase();
 
-        // Apply jersey colors
+        // Apply jersey colors with contrast enhancement
         const jerseyLeft = swap ? (settings.jerseyColor2 || '#b91c1c') : (settings.jerseyColor1 || '#1e3a8a');
         const jerseyRight = swap ? (settings.jerseyColor1 || '#1e3a8a') : (settings.jerseyColor2 || '#b91c1c');
         
-        el('jersey1').style.background = jerseyLeft;
-        el('jersey2').style.background = jerseyRight;
+        // Helper to calculate luminance and check if color is too similar to our system blue
+        function getLuminance(hex) {
+          const rgb = parseInt(hex.slice(1), 16);
+          const r = ((rgb >> 16) & 0xff) / 255;
+          const g = ((rgb >> 8) & 0xff) / 255;
+          const b = (rgb & 0xff) / 255;
+          const a = [r, g, b].map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+          return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+        }
+        
+        function isSystemBlueLike(hex) {
+          const systemBlue = '#1e3a8a';
+          const systemRgb = parseInt(systemBlue.slice(1), 16);
+          const colorRgb = parseInt(hex.slice(1), 16);
+          
+          const sR = (systemRgb >> 16) & 0xff;
+          const sG = (systemRgb >> 8) & 0xff;
+          const sB = systemRgb & 0xff;
+          
+          const cR = (colorRgb >> 16) & 0xff;
+          const cG = (colorRgb >> 8) & 0xff;
+          const cB = colorRgb & 0xff;
+          
+          // Calculate color distance
+          const distance = Math.sqrt(
+            Math.pow(sR - cR, 2) + 
+            Math.pow(sG - cG, 2) + 
+            Math.pow(sB - cB, 2)
+          );
+          
+          return distance < 80; // Similar if distance is small
+        }
+        
+        function enhanceJerseyColor(hex) {
+          // If too similar to system blue, add white border/highlight
+          if (isSystemBlueLike(hex)) {
+            return 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, ' + hex + ' 50%, ' + hex + ' 100%)';
+          }
+          
+          // If too dark, add brightness
+          const lum = getLuminance(hex);
+          if (lum < 0.1) {
+            return 'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, ' + hex + ' 60%, ' + hex + ' 100%)';
+          }
+          
+          return hex;
+        }
+        
+        el('jersey1').style.background = enhanceJerseyColor(jerseyLeft);
+        el('jersey1').style.color = jerseyLeft;
+        el('jersey2').style.background = enhanceJerseyColor(jerseyRight);
+        el('jersey2').style.color = jerseyRight;
 
         // Points = current game points
         el('p1').textContent = String(left.points ?? 0);
