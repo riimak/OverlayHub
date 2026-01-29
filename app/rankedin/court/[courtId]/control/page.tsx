@@ -409,18 +409,42 @@ export default function ControlPage() {
             </div>
             <div>
               <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f1f5f9" }}>
-                Tournament Programming
+                Tournament Connection
               </h2>
               <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", marginTop: 4 }}>
-                Connect to RankedIn tournament data (optional)
+                Link to RankedIn tournament to show matches, schedule, and results
               </p>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16 }}>
+          <div style={{ 
+            marginTop: 24,
+            padding: "16px 20px",
+            background: "rgba(15, 23, 42, 0.5)",
+            border: "2px solid rgba(102, 126, 234, 0.3)",
+            borderRadius: 10
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{
+                width: 28,
+                height: 28,
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                fontWeight: 900,
+                color: "white"
+              }}>1</div>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>
+                Enter Tournament ID & Load Matches
+              </h3>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16 }}>
             <label style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
-                Tournament ID
+                Tournament ID <span style={{ color: "#ef4444" }}>*</span>
               </span>
               <input
                 value={settings.tournamentId ?? ""}
@@ -471,33 +495,61 @@ export default function ControlPage() {
             <div style={{ display: "flex", alignItems: "end" }}>
               <button
                 onClick={fetchTournament}
-                disabled={loadingTournament || !courtId}
+                disabled={loadingTournament || !courtId || !settings.tournamentId}
                 style={{ 
-                  padding: "11px 20px",
+                  padding: "11px 24px",
                   width: "100%",
-                  background: loadingTournament || !courtId ? "#e2e8f0" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  background: loadingTournament || !courtId || !settings.tournamentId ? "#94a3b8" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   color: "white",
                   border: "none",
                   borderRadius: 8,
                   fontSize: 14,
                   fontWeight: 700,
-                  cursor: loadingTournament || !courtId ? "not-allowed" : "pointer",
+                  cursor: loadingTournament || !courtId || !settings.tournamentId ? "not-allowed" : "pointer",
                   transition: "transform 0.1s, box-shadow 0.2s",
-                  boxShadow: loadingTournament || !courtId ? "none" : "0 4px 6px rgba(102, 126, 234, 0.3)"
+                  boxShadow: loadingTournament || !courtId || !settings.tournamentId ? "none" : "0 4px 6px rgba(102, 126, 234, 0.4)"
                 }}
-                onMouseDown={(e) => !loadingTournament && courtId && (e.currentTarget.style.transform = "scale(0.98)")}
+                onMouseDown={(e) => !loadingTournament && courtId && settings.tournamentId && (e.currentTarget.style.transform = "scale(0.98)")}
                 onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
                 onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
-                {loadingTournament ? "⏳ Loading..." : "🔄 Fetch Matches"}
+                {loadingTournament ? "⏳ Loading..." : "🔄 Load Matches"}
               </button>
             </div>
           </div>
+          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, marginTop: 16 }}>
+          <div style={{ 
+            marginTop: 16,
+            padding: "16px 20px",
+            background: "rgba(15, 23, 42, 0.5)",
+            border: tournamentMatches.length > 0 ? "2px solid rgba(172, 239, 52, 0.3)" : "2px solid rgba(100, 116, 139, 0.2)",
+            borderRadius: 10,
+            opacity: tournamentMatches.length === 0 ? 0.5 : 1
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{
+                width: 28,
+                height: 28,
+                background: tournamentMatches.length > 0 
+                  ? "linear-gradient(135deg, #ACEF34 0%, #7DC1FF 100%)" 
+                  : "rgba(100, 116, 139, 0.3)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                fontWeight: 900,
+                color: "white"
+              }}>2</div>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>
+                Select Court & Configure Display
+              </h3>
+            </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
             <label style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
-                Court Name (from tournament)
+                Which court to display? <span style={{ color: "#ef4444" }}>*</span>
               </span>
               <select
                 value={settings.tournamentCourtName ?? ""}
@@ -527,11 +579,12 @@ export default function ControlPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginTop: 16 }}>
             <label style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
-                📍 Pin NOW Match (optional)
+                📍 Override Current Match
               </span>
               <select
                 value={settings.pinnedNowMatchId ?? ""}
                 onChange={(e) => setSettings({ ...settings, pinnedNowMatchId: e.target.value })}
+                disabled={courtMatches.length === 0}
                 style={{ 
                   padding: "10px 14px",
                   border: "2px solid rgba(100, 116, 139, 0.3)",
@@ -539,27 +592,31 @@ export default function ControlPage() {
                   fontSize: 14,
                   outline: "none",
                   background: "rgba(15, 23, 42, 0.5)",
-                  cursor: "pointer",
+                  cursor: courtMatches.length === 0 ? "not-allowed" : "pointer",
                   fontFamily: "inherit",
                   color: "#f1f5f9"
                 }}
               >
-                <option value="">(auto)</option>
+                <option value="">(auto-detect)</option>
                 {courtMatches.map((m) => (
                   <option key={m.Id} value={String(m.Id)}>
                     {matchLabel(m)}
                   </option>
                 ))}
               </select>
+              <span style={{ fontSize: 11, color: "#64748b", marginTop: 6, fontStyle: "italic" }}>
+                Leave as auto-detect for normal use
+              </span>
             </label>
 
             <label style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
-                ⏭️ Pin NEXT Match (optional)
+                ⏭️ Override Next Match
               </span>
               <select
                 value={settings.pinnedNextMatchId ?? ""}
                 onChange={(e) => setSettings({ ...settings, pinnedNextMatchId: e.target.value })}
+                disabled={courtMatches.length === 0}
                 style={{ 
                   padding: "10px 14px",
                   border: "2px solid rgba(100, 116, 139, 0.3)",
@@ -567,85 +624,105 @@ export default function ControlPage() {
                   fontSize: 14,
                   outline: "none",
                   background: "rgba(15, 23, 42, 0.5)",
-                  cursor: "pointer",
+                  cursor: courtMatches.length === 0 ? "not-allowed" : "pointer",
                   fontFamily: "inherit",
                   color: "#f1f5f9"
                 }}
               >
-                <option value="">(auto)</option>
+                <option value="">(auto-detect)</option>
                 {courtMatches.map((m) => (
                   <option key={m.Id} value={String(m.Id)}>
                     {matchLabel(m)}
                   </option>
                 ))}
               </select>
+              <span style={{ fontSize: 11, color: "#64748b", marginTop: 6, fontStyle: "italic" }}>
+                Leave as auto-detect for normal use
+              </span>
             </label>
+          </div>
+          </div>
 
-            <div style={{ display: "flex", alignItems: "end" }}>
+          <div style={{ 
+            marginTop: 16,
+            padding: "16px 20px",
+            background: "rgba(15, 23, 42, 0.5)",
+            border: "2px solid rgba(16, 185, 129, 0.3)",
+            borderRadius: 10,
+            opacity: !settings.tournamentCourtName ? 0.5 : 1
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  width: 28,
+                  height: 28,
+                  background: !settings.tournamentCourtName 
+                    ? "rgba(100, 116, 139, 0.3)"
+                    : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 14,
+                  fontWeight: 900,
+                  color: "white"
+                }}>3</div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>
+                    Apply Configuration
+                  </h3>
+                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                    Save settings to activate tournament integration
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => save()}
-                disabled={saving || !courtId}
+                disabled={saving || !courtId || !settings.tournamentCourtName}
                 style={{ 
-                  padding: "11px 20px",
-                  width: "100%",
-                  background: saving || !courtId ? "#e2e8f0" : "#10b981",
+                  padding: "12px 32px",
+                  minWidth: 180,
+                  background: saving || !courtId || !settings.tournamentCourtName 
+                    ? "#94a3b8" 
+                    : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                   color: "white",
                   border: "none",
                   borderRadius: 8,
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: 700,
-                  cursor: saving || !courtId ? "not-allowed" : "pointer",
+                  cursor: saving || !courtId || !settings.tournamentCourtName ? "not-allowed" : "pointer",
                   transition: "transform 0.1s, box-shadow 0.2s",
-                  boxShadow: saving || !courtId ? "none" : "0 4px 6px rgba(16, 185, 129, 0.3)"
+                  boxShadow: saving || !courtId || !settings.tournamentCourtName 
+                    ? "none" 
+                    : "0 4px 8px rgba(16, 185, 129, 0.4)",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0
                 }}
-                onMouseDown={(e) => !saving && courtId && (e.currentTarget.style.transform = "scale(0.98)")}
+                onMouseDown={(e) => !saving && courtId && settings.tournamentCourtName && (e.currentTarget.style.transform = "scale(0.98)")}
                 onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
                 onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
-                {saving ? "💾 Saving..." : "💾 Save Tournament Setup"}
+                {saving ? "💾 Saving..." : "✅ Save & Activate"}
               </button>
             </div>
           </div>
 
           <div style={{ 
-            marginTop: 20,
+            marginTop: 16,
             padding: 14,
-            background: "rgba(15, 23, 42, 0.5)",
+            background: "rgba(79, 172, 254, 0.1)",
             borderRadius: 8,
             fontSize: 13,
             color: "#94a3b8",
             lineHeight: 1.6,
-            border: "1px solid rgba(100, 116, 139, 0.3)"
+            border: "1px solid rgba(79, 172, 254, 0.3)"
           }}>
-            <strong style={{ color: "#cbd5e1" }}>💡 Tip:</strong> After saving, your data API will include <code style={{ 
-              background: "rgba(100, 116, 139, 0.3)",
-              padding: "2px 6px",
-              borderRadius: 4,
-              fontFamily: "monospace",
-              fontSize: 12,
-              color: "#ACEF34"
-            }}>program</code> object with <code style={{ 
-              background: "rgba(100, 116, 139, 0.3)",
-              padding: "2px 6px",
-              borderRadius: 4,
-              fontFamily: "monospace",
-              fontSize: 12,
-              color: "#ACEF34"
-            }}>nowOnCourt</code>, <code style={{ 
-              background: "rgba(100, 116, 139, 0.3)",
-              padding: "2px 6px",
-              borderRadius: 4,
-              fontFamily: "monospace",
-              fontSize: 12,
-              color: "#ACEF34"
-            }}>nextOnCourt</code>, and <code style={{ 
-              background: "rgba(100, 116, 139, 0.3)",
-              padding: "2px 6px",
-              borderRadius: 4,
-              fontFamily: "monospace",
-              fontSize: 12,
-              color: "#ACEF34"
-            }}>schedule</code>.
+            <strong style={{ color: "#7DC1FF" }}>✨ What happens after you save:</strong>
+            <ul style={{ margin: "8px 0 0 0", paddingLeft: 20, color: "#cbd5e1" }}>
+              <li style={{ marginBottom: 4 }}>Your overlays will automatically show matches from this tournament</li>
+              <li style={{ marginBottom: 4 }}>"Now on Court" and "Next Match" views will update based on schedule</li>
+              <li>Match results and schedule will be displayed on the results page</li>
+            </ul>
           </div>
         </div>
 
