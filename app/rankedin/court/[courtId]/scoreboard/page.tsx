@@ -206,6 +206,32 @@ export default function ScoreboardPage({
             text-shadow: 0 2px 8px rgba(0,0,0,0.5);
           }
 
+          /* Round Display */
+          .roundDisplay {
+            width: 820px;
+            margin: 6px auto 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .roundDisplay.hidden {
+            display: none;
+          }
+
+          .roundBadge {
+            padding: 4px 14px;
+            border-radius: 3px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          }
+
           .hidden { display:none; }
 
           /* ===== SLATE (optional when not live) ===== */
@@ -292,6 +318,11 @@ export default function ScoreboardPage({
             <div className="ballBadge" id="ballBadge">GAME BALL</div>
           </div>
 
+          {/* Round Display */}
+          <div className="roundDisplay hidden" id="roundDisplay">
+            <div className="roundBadge" id="roundBadge">ROUND</div>
+          </div>
+
           {/* SLATE */}
           <div className="slate hidden" id="slate">
             <div className="slateInner">
@@ -346,6 +377,7 @@ export default function ScoreboardPage({
       const data = await r.json();
 
       const match = data.match || null;
+      const program = data.program || null;
       const settings = (data.overlay && data.overlay.settings) ? data.overlay.settings : {};
       const event = (data.overlay && data.overlay.event) ? data.overlay.event : null;
 
@@ -401,6 +433,9 @@ export default function ScoreboardPage({
 
         // Hide ball status
         el('ballStatus').classList.add('hidden');
+
+        // Hide round display in preview mode
+        el('roundDisplay').classList.add('hidden');
       } else if (showScoreboard) {
         bar.classList.remove('hidden');
         slate.classList.add('hidden');
@@ -487,6 +522,20 @@ export default function ScoreboardPage({
           ballStatus.classList.add('hidden');
         }
 
+        // Round Display
+        const roundDisplay = el('roundDisplay');
+        const roundBadge = el('roundBadge');
+        
+        // Get round info from program data
+        const nowOnCourt = program && program.nowOnCourt ? program.nowOnCourt : null;
+        const roundText = nowOnCourt && nowOnCourt.draw ? String(nowOnCourt.draw) : null;
+        
+        if (roundText && isLive) {
+          roundBadge.textContent = roundText;
+          roundDisplay.classList.remove('hidden');
+        } else {
+          roundDisplay.classList.add('hidden');
+        }
 
       } else if (showSlate) {
         bar.classList.add('hidden');
