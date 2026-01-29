@@ -649,6 +649,232 @@ export default function ControlPage() {
           </div>
         </div>
 
+        {/* Loaded Matches Display */}
+        {tournamentMatches.length > 0 && (
+          <div style={{
+            background: "rgba(30, 41, 59, 0.95)",
+            borderRadius: 16,
+            padding: "28px 32px",
+            marginBottom: 24,
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.5)",
+            border: "1px solid rgba(100, 116, 139, 0.3)"
+          }}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between",
+              marginBottom: 20
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                  borderRadius: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20
+                }}>
+                  📋
+                </div>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f1f5f9" }}>
+                    Loaded Matches
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", marginTop: 4 }}>
+                    {tournamentMatches.length} match{tournamentMatches.length !== 1 ? 'es' : ''} loaded from tournament
+                  </p>
+                </div>
+              </div>
+              <div style={{
+                background: "rgba(79, 172, 254, 0.15)",
+                border: "2px solid #4facfe",
+                color: "#4facfe",
+                padding: "8px 16px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 700
+              }}>
+                {tournamentCourts.length} court{tournamentCourts.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+
+            {settings.tournamentCourtName && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{
+                  background: "rgba(172, 239, 52, 0.1)",
+                  border: "1px solid rgba(172, 239, 52, 0.3)",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  color: "#ACEF34",
+                  fontWeight: 600
+                }}>
+                  🎯 Filtered to court: <strong>{settings.tournamentCourtName}</strong> ({courtMatches.length} match{courtMatches.length !== 1 ? 'es' : ''})
+                </div>
+              </div>
+            )}
+
+            <div style={{ 
+              maxHeight: 500,
+              overflowY: "auto",
+              border: "1px solid rgba(100, 116, 139, 0.3)",
+              borderRadius: 8,
+              background: "rgba(15, 23, 42, 0.5)"
+            }}>
+              <table style={{ 
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: 13
+              }}>
+                <thead>
+                  <tr style={{ 
+                    background: "rgba(15, 23, 42, 0.8)",
+                    borderBottom: "2px solid rgba(100, 116, 139, 0.3)",
+                    position: "sticky",
+                    top: 0
+                  }}>
+                    <th style={{ 
+                      padding: "12px 16px",
+                      textAlign: "left",
+                      color: "#cbd5e1",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px"
+                    }}>ID</th>
+                    <th style={{ 
+                      padding: "12px 16px",
+                      textAlign: "left",
+                      color: "#cbd5e1",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px"
+                    }}>Date/Time</th>
+                    <th style={{ 
+                      padding: "12px 16px",
+                      textAlign: "left",
+                      color: "#cbd5e1",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px"
+                    }}>Court</th>
+                    <th style={{ 
+                      padding: "12px 16px",
+                      textAlign: "left",
+                      color: "#cbd5e1",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px"
+                    }}>Players</th>
+                    <th style={{ 
+                      padding: "12px 16px",
+                      textAlign: "center",
+                      color: "#cbd5e1",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px"
+                    }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(settings.tournamentCourtName ? courtMatches : tournamentMatches).map((match, idx) => {
+                    const challenger = match?.Challenger?.Name || "TBD";
+                    const challenged = match?.Challenged?.Name || "TBD";
+                    const matchDate = match?.Date ? new Date(match.Date).toLocaleString() : "—";
+                    const court = match?.Court || "—";
+                    const state = match?.State;
+                    
+                    let statusLabel = "Scheduled";
+                    let statusColor = "#94a3b8";
+                    let statusBg = "rgba(148, 163, 184, 0.1)";
+                    
+                    if (state === 2) {
+                      statusLabel = "Live";
+                      statusColor = "#EF4444";
+                      statusBg = "rgba(239, 68, 68, 0.15)";
+                    } else if (state === 3) {
+                      statusLabel = "Completed";
+                      statusColor = "#10b981";
+                      statusBg = "rgba(16, 185, 129, 0.15)";
+                    }
+
+                    return (
+                      <tr key={match?.Id || idx} style={{ 
+                        borderBottom: "1px solid rgba(100, 116, 139, 0.2)",
+                        transition: "background 0.15s"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "rgba(100, 116, 139, 0.1)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                      >
+                        <td style={{ 
+                          padding: "14px 16px",
+                          color: "#7DC1FF",
+                          fontWeight: 600
+                        }}>#{match?.Id || "—"}</td>
+                        <td style={{ 
+                          padding: "14px 16px",
+                          color: "#e2e8f0",
+                          fontSize: 12
+                        }}>{matchDate}</td>
+                        <td style={{ 
+                          padding: "14px 16px",
+                          color: "#ACEF34",
+                          fontWeight: 600
+                        }}>{court}</td>
+                        <td style={{ 
+                          padding: "14px 16px",
+                          color: "#f1f5f9",
+                          fontWeight: 600
+                        }}>
+                          {challenger} <span style={{ color: "#94a3b8", fontWeight: 400 }}>vs</span> {challenged}
+                        </td>
+                        <td style={{ 
+                          padding: "14px 16px",
+                          textAlign: "center"
+                        }}>
+                          <span style={{
+                            background: statusBg,
+                            color: statusColor,
+                            padding: "4px 10px",
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.3px"
+                          }}>
+                            {statusLabel}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {!settings.tournamentCourtName && tournamentCourts.length > 1 && (
+              <div style={{
+                marginTop: 14,
+                padding: 12,
+                background: "rgba(245, 158, 11, 0.1)",
+                border: "1px solid rgba(245, 158, 11, 0.3)",
+                borderRadius: 8,
+                fontSize: 12,
+                color: "#fbbf24",
+                lineHeight: 1.5
+              }}>
+                💡 <strong>Tip:</strong> Select a specific court above to filter this list and enable match pinning.
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Display Settings Section */}
         <div style={{
           background: "rgba(30, 41, 59, 0.95)",

@@ -596,51 +596,6 @@ export default function ScoreboardPage({
   tick();
   setInterval(tick, refreshMs);
 })();
-
-// Check if this view should still be active
-(function(){
-  const parts = window.location.pathname.split('/').filter(Boolean);
-  const courtId = parts[2];
-  if (!courtId) return;
-
-  const settingsAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/settings';
-
-  async function checkActiveView() {
-    try {
-      const r = await fetch(settingsAPI, { cache: 'no-store' });
-      if (!r.ok) return;
-      
-      const settings = await r.json();
-      const activeDisplay = settings.activeDisplay || 'scoreboard';
-      
-      if (activeDisplay !== 'scoreboard') {
-        const params = new URLSearchParams(window.location.search);
-        const baseUrl = window.location.origin;
-        let targetUrl = '';
-        
-        switch(activeDisplay) {
-          case 'now':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/now?' + params.toString();
-            break;
-          case 'next':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/next?' + params.toString();
-            break;
-          case 'schedule':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/schedule?' + params.toString();
-            break;
-        }
-        
-        if (targetUrl) {
-          window.location.href = targetUrl;
-        }
-      }
-    } catch (e) {
-      // Silent fail
-    }
-  }
-
-  setInterval(checkActiveView, ${JSON.stringify(Math.max(500, safeRefresh))});
-})();
             `
           }}
         />

@@ -277,51 +277,6 @@ export default function NextMatchPage({
   tick();
   setInterval(tick, refreshMs);
 })();
-
-// Check if this view should still be active
-(function(){
-  const parts = window.location.pathname.split('/').filter(Boolean);
-  const courtId = parts[2];
-  if (!courtId) return;
-
-  const settingsAPI = '/api/rankedin/court/' + encodeURIComponent(courtId) + '/settings';
-
-  async function checkActiveView() {
-    try {
-      const r = await fetch(settingsAPI, { cache: 'no-store' });
-      if (!r.ok) return;
-      
-      const settings = await r.json();
-      const activeDisplay = settings.activeDisplay || 'scoreboard';
-      
-      if (activeDisplay !== 'next') {
-        const params = new URLSearchParams(window.location.search);
-        const baseUrl = window.location.origin;
-        let targetUrl = '';
-        
-        switch(activeDisplay) {
-          case 'scoreboard':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/scoreboard?' + params.toString();
-            break;
-          case 'now':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/now?' + params.toString();
-            break;
-          case 'schedule':
-            targetUrl = baseUrl + '/rankedin/court/' + encodeURIComponent(courtId) + '/schedule?' + params.toString();
-            break;
-        }
-        
-        if (targetUrl) {
-          window.location.href = targetUrl;
-        }
-      }
-    } catch (e) {
-      // Silent fail
-    }
-  }
-
-  setInterval(checkActiveView, ${JSON.stringify(Math.max(500, safeRefresh))});
-})();
             `
           }}
         />
