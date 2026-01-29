@@ -177,14 +177,17 @@ export default function ControlPage() {
         if (court) courtSet.add(court);
       });
 
-      // Add courts from courts API
+      // Parse courts data once and reuse it later
+      let courtsData: any[] = [];
       if (courtsRes && courtsRes.ok) {
-        const courtsData = await courtsRes.json();
+        courtsData = await courtsRes.json();
         if (Array.isArray(courtsData)) {
           courtsData.forEach((court: any) => {
             const courtName = String(court?.CourtName ?? "").trim();
             if (courtName) courtSet.add(courtName);
           });
+        } else {
+          courtsData = [];
         }
       }
 
@@ -200,13 +203,6 @@ export default function ControlPage() {
       let metadata: any = null;
       if (metadataRes && metadataRes.ok) {
         metadata = await metadataRes.json();
-      }
-      
-      // Get courts data for venue extraction
-      let courtsData: any[] = [];
-      if (courtsRes && courtsRes.ok) {
-        courtsData = await courtsRes.json();
-        if (!Array.isArray(courtsData)) courtsData = [];
       }
 
       // Tournament Name - prioritize metadata API
