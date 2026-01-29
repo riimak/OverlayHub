@@ -188,11 +188,6 @@ export default function ScoreboardPage({
             min-height: 22px;
           }
 
-          .ballIndicator.hidden {
-            visibility: hidden;
-            opacity: 0;
-          }
-
           .ballText {
             font-size: 10px;
             font-weight: 900;
@@ -208,6 +203,12 @@ export default function ScoreboardPage({
             position: relative;
             overflow: hidden;
             animation: ballGlow 2s ease-in-out infinite;
+            transition: opacity 0.3s, visibility 0.3s;
+          }
+
+          .ballIndicator.hidden .ballText {
+            opacity: 0;
+            visibility: hidden;
           }
 
           .ballText::before {
