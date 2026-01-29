@@ -66,15 +66,17 @@ export default function ScoreboardPage({
           /* ===== SCORE BAR ===== */
           .bar {
             width: 820px;
-            height: 38px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 170px 1fr;
-            align-items: center;
             border-radius: 3px;
             overflow: hidden;
             box-shadow: var(--shadow);
             background: transparent;
+          }
+
+          .barGrid {
+            display: grid;
+            grid-template-columns: 1fr 170px 1fr;
+            align-items: center;
           }
 
           .namePlate {
@@ -174,6 +176,30 @@ export default function ScoreboardPage({
           }
           .dot.on { background: var(--dotOn); }
 
+          /* Ball indicator under scores */
+          .ballIndicator {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px 0;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255,255,255,0.07);
+          }
+
+          .ballIndicator.hidden {
+            display: none;
+          }
+
+          .ballText {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+          }
+
           /* Optional status line (hidden by default) */
           .status {
             width: 820px;
@@ -190,34 +216,7 @@ export default function ScoreboardPage({
             opacity: 0.0; /* set to 1 to show */
           }
 
-          /* Game/Match Ball Indicator */
-          .ballStatus {
-            width: 820px;
-            margin: 6px auto 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-
-          .ballStatus.hidden {
-            display: none;
-          }
-
-          .ballBadge {
-            padding: 6px 18px;
-            border-radius: 3px;
-            background: rgba(15, 23, 42, 0.95);
-            border: 2px solid rgba(255, 255, 255, 0.95);
-            color: rgba(255, 255, 255, 0.95);
-            font-size: 13px;
-            font-weight: 900;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            box-shadow: var(--shadow);
-            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-          }
-
-          /* Round Display */
+          /* Round Display (main position below scoreboard) */
           .roundDisplay {
             width: 820px;
             margin: 6px auto 0;
@@ -231,16 +230,17 @@ export default function ScoreboardPage({
           }
 
           .roundBadge {
-            padding: 4px 14px;
+            padding: 6px 18px;
             border-radius: 3px;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 11px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 13px;
             font-weight: 900;
-            letter-spacing: 0.8px;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: var(--shadow);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
           }
 
           .hidden { display:none; }
@@ -300,30 +300,37 @@ export default function ScoreboardPage({
         <div className="wrap">
           {/* SCOREBOARD BAR */}
           <div className="bar" id="bar">
-            <div className="namePlate left">
-              <span id="n1">—</span>
-              <div className="jerseyLine" id="jersey1" style={{ background: "#1e3a8a" }}></div>
-            </div>
-
-            <div className="cap">
-              <span className="pt" id="p1">
-                0
-              </span>
-
-              <div className="games">
-                <span className="dot" id="s1"></span>
-                <span id="gmid">0–0</span>
-                <span className="dot" id="s2"></span>
+            <div className="barGrid">
+              <div className="namePlate left">
+                <span id="n1">—</span>
+                <div className="jerseyLine" id="jersey1" style={{ background: "#1e3a8a" }}></div>
               </div>
 
-              <span className="pt" id="p2">
-                0
-              </span>
+              <div className="cap">
+                <span className="pt" id="p1">
+                  0
+                </span>
+
+                <div className="games">
+                  <span className="dot" id="s1"></span>
+                  <span id="gmid">0–0</span>
+                  <span className="dot" id="s2"></span>
+                </div>
+
+                <span className="pt" id="p2">
+                  0
+                </span>
+              </div>
+
+              <div className="namePlate right">
+                <span id="n2">—</span>
+                <div className="jerseyLine" id="jersey2" style={{ background: "#b91c1c" }}></div>
+              </div>
             </div>
 
-            <div className="namePlate right">
-              <span id="n2">—</span>
-              <div className="jerseyLine" id="jersey2" style={{ background: "#b91c1c" }}></div>
+            {/* Game/Match Ball Indicator (inside bar, under scores) */}
+            <div className="ballIndicator hidden" id="ballIndicator">
+              <span className="ballText" id="ballText">GAME BALL</span>
             </div>
           </div>
 
@@ -333,12 +340,7 @@ export default function ScoreboardPage({
             <span id="tm">00:00</span>
           </div>
 
-          {/* Game/Match Ball Indicator */}
-          <div className="ballStatus hidden" id="ballStatus">
-            <div className="ballBadge" id="ballBadge">GAME BALL</div>
-          </div>
-
-          {/* Round Display */}
+          {/* Round Display (main position below scoreboard) */}
           <div className="roundDisplay hidden" id="roundDisplay">
             <div className="roundBadge" id="roundBadge">ROUND</div>
           </div>
@@ -549,8 +551,8 @@ export default function ScoreboardPage({
         el('tm').textContent = fmtTime(match.durationSeconds);
 
         // Game/Match Ball Detection
-        const ballStatus = el('ballStatus');
-        const ballBadge = el('ballBadge');
+        const ballIndicator = el('ballIndicator');
+        const ballTextEl = el('ballText');
         
         const leftPoints = left.points ?? 0;
         const rightPoints = right.points ?? 0;
@@ -566,7 +568,7 @@ export default function ScoreboardPage({
         const bestOf = match.bestOf ?? 5; // default to best of 5
         const matchWinningGames = Math.ceil(bestOf / 2); // 2 for bo3, 3 for bo5, 4 for bo7
         
-        let ballText = null;
+        let ballStatusText = null;
         
         // Check if either player is at match ball (one game away from winning and at game point)
         const leftAtMatchBall = leftGames === matchWinningGames - 1 && 
@@ -581,16 +583,16 @@ export default function ScoreboardPage({
           (rightPoints >= gameWinningPoint - 1 && rightPoints >= leftPoints + winByMargin - 1);
         
         if (leftAtMatchBall || rightAtMatchBall) {
-          ballText = 'MATCH BALL';
+          ballStatusText = 'MATCH BALL';
         } else if (leftAtGameBall || rightAtGameBall) {
-          ballText = 'GAME BALL';
+          ballStatusText = 'GAME BALL';
         }
         
-        if (ballText && isLive) {
-          ballBadge.textContent = ballText;
-          ballStatus.classList.remove('hidden');
+        if (ballStatusText && isLive) {
+          ballTextEl.textContent = ballStatusText;
+          ballIndicator.classList.remove('hidden');
         } else {
-          ballStatus.classList.add('hidden');
+          ballIndicator.classList.add('hidden');
         }
 
         // Round Display
