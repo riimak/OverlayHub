@@ -372,9 +372,35 @@ export default function ScoreboardPage({
       }
 
       if (!match && viewMode === 'auto') {
-        // nothing to show -> hide everything
-        bar.classList.add('hidden');
+        // Show default placeholder data instead of hiding
+        bar.classList.remove('hidden');
         slate.classList.add('hidden');
+
+        // Default placeholder names
+        el('n1').textContent = 'PLAYER 1';
+        el('n2').textContent = 'PLAYER 2';
+
+        // Default jersey colors
+        el('jersey1').style.background = '#1e3a8a';
+        el('jersey2').style.background = '#b91c1c';
+
+        // Default scores
+        el('p1').textContent = '7';
+        el('p2').textContent = '5';
+
+        // Default games
+        el('gmid').textContent = '1–0';
+
+        // Default serve dots (left serving)
+        el('s1').className = 'dot on';
+        el('s2').className = 'dot';
+
+        // Status
+        el('st').textContent = 'PREVIEW MODE';
+        el('tm').textContent = '00:00';
+
+        // Hide ball status
+        el('ballStatus').classList.add('hidden');
       } else if (showScoreboard) {
         bar.classList.remove('hidden');
         slate.classList.add('hidden');
