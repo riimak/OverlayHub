@@ -56,11 +56,13 @@ export default function ScoreboardPage({
             margin:0;
             background: transparent;
             font-family: ${JSON.stringify(font)}, Inter, Arial, sans-serif;
+            overflow: hidden;
           }
 
           .wrap {
             width: 100%;
             padding: 18px;
+            background: transparent;
           }
 
           /* ===== SCORE BAR ===== */
