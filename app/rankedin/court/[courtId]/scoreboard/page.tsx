@@ -78,6 +78,7 @@ export default function ScoreboardPage({
           .barGrid {
             display: grid;
             grid-template-columns: 1fr 170px 1fr;
+            grid-template-rows: 22px 38px;
             align-items: center;
           }
 
@@ -97,6 +98,7 @@ export default function ScoreboardPage({
             text-overflow: ellipsis;
             border: 1px solid var(--line);
             position: relative;
+            grid-row: 2;
           }
 
           .namePlate.left {
@@ -139,6 +141,7 @@ export default function ScoreboardPage({
             gap: 10px;
             border-top: 1px solid rgba(255,255,255,0.07);
             border-bottom: 1px solid rgba(255,255,255,0.07);
+            grid-row: 2;
           }
 
           /* Primary score points (hero) */
@@ -181,11 +184,12 @@ export default function ScoreboardPage({
           /* Ball indicator at top of bar */
           .ballIndicator {
             grid-column: 1 / -1;
+            grid-row: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 6px 0 4px 0;
-            min-height: 22px;
+            height: 22px;
+            padding: 0;
           }
 
           .ballText {
@@ -202,13 +206,17 @@ export default function ScoreboardPage({
             border: 1px solid rgba(255,255,255,0.1);
             position: relative;
             overflow: hidden;
+            transition: opacity 0.3s;
+          }
+
+          .ballIndicator:not(.hidden) .ballText {
             animation: ballGlow 2s ease-in-out infinite;
-            transition: opacity 0.3s, visibility 0.3s;
           }
 
           .ballIndicator.hidden .ballText {
             opacity: 0;
-            visibility: hidden;
+            pointer-events: none;
+            animation: none;
           }
 
           .ballText::before {
