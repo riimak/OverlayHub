@@ -233,7 +233,7 @@ export default function NextMatchPage({
 
       // Set header info
       el('title').textContent = 'NEXT MATCH';
-      el('subtitle').textContent = settings.subtitle || (data.courtName ? data.courtName : '—');
+      el('subtitle').textContent = settings.subtitle || (data.courtName ? String(data.courtName) : '—');
 
       if (!match) {
         // No match scheduled

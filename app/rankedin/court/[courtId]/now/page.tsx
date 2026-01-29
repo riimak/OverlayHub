@@ -358,7 +358,7 @@ export default function NowMatchPage({
       const liveIndicator = el('liveIndicator');
 
       // Set header info
-      el('subtitle').textContent = settings.subtitle || (data.courtName ? data.courtName : '—');
+      el('subtitle').textContent = settings.subtitle || (data.courtName ? String(data.courtName) : '—');
 
       if (!match) {
         // No match

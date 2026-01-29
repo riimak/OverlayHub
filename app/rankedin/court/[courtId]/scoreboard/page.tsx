@@ -613,7 +613,7 @@ export default function ScoreboardPage({
         slate.classList.remove('hidden');
 
         el('tname').textContent = (settings.tournamentName || 'TOURNAMENT').toUpperCase();
-        el('subtitle').textContent = settings.subtitle || (data.courtName ? ('Court: ' + data.courtName) : '—');
+        el('subtitle').textContent = settings.subtitle || (data.courtName ? String(data.courtName) : '—');
 
         const swap = !!settings.swap;
         const p1n = match?.player1?.name || 'PLAYER 1';
