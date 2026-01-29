@@ -176,15 +176,15 @@ export default function ScoreboardPage({
           }
           .dot.on { background: var(--dotOn); }
 
-          /* Ball indicator under scores */
+          /* Ball indicator at top of bar */
           .ballIndicator {
             grid-column: 1 / -1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 5px 0;
-            background: rgba(15, 23, 42, 0.95);
-            border-top: 1px solid rgba(255,255,255,0.07);
+            padding: 4px 0 2px 0;
+            background: var(--cap);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
           }
 
           .ballIndicator.hidden {
@@ -192,12 +192,12 @@ export default function ScoreboardPage({
           }
 
           .ballText {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 900;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            color: rgba(255, 255, 255, 0.92);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
           }
 
           /* Optional status line (hidden by default) */
@@ -301,6 +301,11 @@ export default function ScoreboardPage({
           {/* SCOREBOARD BAR */}
           <div className="bar" id="bar">
             <div className="barGrid">
+              {/* Game/Match Ball Indicator (at top of bar, above scores) */}
+              <div className="ballIndicator hidden" id="ballIndicator">
+                <span className="ballText" id="ballText">GAME BALL</span>
+              </div>
+
               <div className="namePlate left">
                 <span id="n1">—</span>
                 <div className="jerseyLine" id="jersey1" style={{ background: "#1e3a8a" }}></div>
@@ -326,11 +331,6 @@ export default function ScoreboardPage({
                 <span id="n2">—</span>
                 <div className="jerseyLine" id="jersey2" style={{ background: "#b91c1c" }}></div>
               </div>
-            </div>
-
-            {/* Game/Match Ball Indicator (inside bar, under scores) */}
-            <div className="ballIndicator hidden" id="ballIndicator">
-              <span className="ballText" id="ballText">GAME BALL</span>
             </div>
           </div>
 
