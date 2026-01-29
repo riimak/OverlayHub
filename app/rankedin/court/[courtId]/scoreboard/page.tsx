@@ -185,10 +185,12 @@ export default function ScoreboardPage({
             justify-content: center;
             align-items: center;
             padding: 6px 0 4px 0;
+            min-height: 22px;
           }
 
           .ballIndicator.hidden {
-            display: none;
+            visibility: hidden;
+            opacity: 0;
           }
 
           .ballText {
