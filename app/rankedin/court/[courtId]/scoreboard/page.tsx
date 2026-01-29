@@ -454,8 +454,9 @@ export default function ScoreboardPage({
         // Hide ball status
         el('ballStatus').classList.add('hidden');
 
-        // Hide round display in preview mode
-        el('roundDisplay').classList.add('hidden');
+        // Show default round in preview mode (useful for Monrad/Swiss tournaments)
+        el('roundBadge').textContent = 'ROUND 1';
+        el('roundDisplay').classList.remove('hidden');
       } else if (showScoreboard) {
         bar.classList.remove('hidden');
         slate.classList.add('hidden');
