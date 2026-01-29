@@ -182,9 +182,7 @@ export default function ScoreboardPage({
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 4px 0 2px 0;
-            background: var(--cap);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 6px 0 4px 0;
           }
 
           .ballIndicator.hidden {
@@ -194,10 +192,73 @@ export default function ScoreboardPage({
           .ballText {
             font-size: 10px;
             font-weight: 900;
+            font-style: italic;
             letter-spacing: 0.8px;
             text-transform: uppercase;
             color: rgba(255, 255, 255, 0.92);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            background: rgba(30, 41, 59, 0.85);
+            padding: 3px 16px;
+            border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            animation: ballGlow 2s ease-in-out infinite;
+          }
+
+          .ballText::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+              45deg,
+              transparent 30%,
+              rgba(255, 255, 255, 0.3) 50%,
+              transparent 70%
+            );
+            animation: sparkleShimmer 3s linear infinite;
+          }
+
+          .ballText::after {
+            content: '✨';
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 8px;
+            animation: sparkle 1.5s ease-in-out infinite;
+          }
+
+          @keyframes ballGlow {
+            0%, 100% {
+              box-shadow: 0 0 5px rgba(172, 239, 52, 0.3), 0 0 10px rgba(172, 239, 52, 0.1);
+            }
+            50% {
+              box-shadow: 0 0 10px rgba(172, 239, 52, 0.5), 0 0 20px rgba(172, 239, 52, 0.2);
+            }
+          }
+
+          @keyframes sparkleShimmer {
+            0% {
+              transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+              transform: translate(50%, 50%) rotate(0deg);
+            }
+          }
+
+          @keyframes sparkle {
+            0%, 100% {
+              opacity: 0.5;
+              transform: translateY(-50%) scale(0.8);
+            }
+            50% {
+              opacity: 1;
+              transform: translateY(-50%) scale(1.2);
+            }
           }
 
           /* Optional status line (hidden by default) */
