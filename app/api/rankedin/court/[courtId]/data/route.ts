@@ -15,6 +15,8 @@ type OverlaySettings = {
   name2?: string | null;
   leftColor?: string | null;
   rightColor?: string | null;
+  jerseyColor1?: string | null;
+  jerseyColor2?: string | null;
   logoOpacity?: number | null;
   logoScale?: number | null;
   viewMode?: "auto" | "scoreboard" | "slate" | "hidden";

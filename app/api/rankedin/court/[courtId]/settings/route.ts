@@ -53,6 +53,9 @@ export async function POST(req: Request, context: any) {
     rightColor:
       typeof body.rightColor === "string" && body.rightColor.trim() ? body.rightColor.trim() : null,
 
+    jerseyColor1: typeof body.jerseyColor1 === "string" && body.jerseyColor1.trim() ? body.jerseyColor1.trim() : null,
+    jerseyColor2: typeof body.jerseyColor2 === "string" && body.jerseyColor2.trim() ? body.jerseyColor2.trim() : null,
+
     logoOpacity: clampNumber(body.logoOpacity, 0, 1, null),
     logoScale: clampNumber(body.logoScale, 0.25, 3, null),
 

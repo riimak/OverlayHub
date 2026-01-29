@@ -92,6 +92,7 @@ export default function ScoreboardPage({
             white-space: nowrap;
             text-overflow: ellipsis;
             border: 1px solid var(--line);
+            position: relative;
           }
 
           .namePlate.left {
@@ -102,6 +103,15 @@ export default function ScoreboardPage({
           .namePlate.right {
             justify-content: flex-end;
             border-left: none;
+          }
+
+          .jerseyLine {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.3);
           }
 
           .cap {
@@ -246,6 +256,7 @@ export default function ScoreboardPage({
           <div className="bar" id="bar">
             <div className="namePlate left">
               <span id="n1">—</span>
+              <div className="jerseyLine" id="jersey1" style={{ background: "#1e3a8a" }}></div>
             </div>
 
             <div className="cap">
@@ -266,6 +277,7 @@ export default function ScoreboardPage({
 
             <div className="namePlate right">
               <span id="n2">—</span>
+              <div className="jerseyLine" id="jersey2" style={{ background: "#b91c1c" }}></div>
             </div>
           </div>
 
@@ -379,6 +391,13 @@ export default function ScoreboardPage({
 
         el('n1').textContent = String(nameLeft).toUpperCase();
         el('n2').textContent = String(nameRight).toUpperCase();
+
+        // Apply jersey colors
+        const jerseyLeft = swap ? (settings.jerseyColor2 || '#b91c1c') : (settings.jerseyColor1 || '#1e3a8a');
+        const jerseyRight = swap ? (settings.jerseyColor1 || '#1e3a8a') : (settings.jerseyColor2 || '#b91c1c');
+        
+        el('jersey1').style.background = jerseyLeft;
+        el('jersey2').style.background = jerseyRight;
 
         // Points = current game points
         el('p1').textContent = String(left.points ?? 0);

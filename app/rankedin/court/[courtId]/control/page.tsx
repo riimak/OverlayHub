@@ -32,6 +32,8 @@ export default function ControlPage() {
     name2: "",
     leftColor: "",
     rightColor: "",
+    jerseyColor1: "#1e3a8a", // Left player jersey color
+    jerseyColor2: "#b91c1c", // Right player jersey color
     logoOpacity: 0.7,
     logoScale: 0.9,
     tournamentName: "",
@@ -931,7 +933,91 @@ export default function ControlPage() {
 
             <label style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
-                💫 Logo Opacity
+                � Left Player Jersey
+              </span>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  type="color"
+                  value={settings.jerseyColor1 ?? "#1e3a8a"}
+                  onChange={(e) => setSettings({ ...settings, jerseyColor1: e.target.value })}
+                  style={{ 
+                    width: 50,
+                    height: 42,
+                    border: "2px solid rgba(100, 116, 139, 0.3)",
+                    borderRadius: 8,
+                    outline: "none",
+                    cursor: "pointer",
+                    background: "transparent"
+                  }}
+                />
+                <input
+                  type="text"
+                  value={settings.jerseyColor1 ?? "#1e3a8a"}
+                  onChange={(e) => setSettings({ ...settings, jerseyColor1: e.target.value })}
+                  placeholder="#1e3a8a"
+                  style={{ 
+                    flex: 1,
+                    padding: "10px 14px",
+                    border: "2px solid rgba(100, 116, 139, 0.3)",
+                    borderRadius: 8,
+                    fontSize: 14,
+                    outline: "none",
+                    transition: "border-color 0.2s",
+                    fontFamily: "inherit",
+                    background: "rgba(15, 23, 42, 0.5)",
+                    color: "#f1f5f9"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                  onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
+                />
+              </div>
+            </label>
+
+            <label style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
+                👕 Right Player Jersey
+              </span>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  type="color"
+                  value={settings.jerseyColor2 ?? "#b91c1c"}
+                  onChange={(e) => setSettings({ ...settings, jerseyColor2: e.target.value })}
+                  style={{ 
+                    width: 50,
+                    height: 42,
+                    border: "2px solid rgba(100, 116, 139, 0.3)",
+                    borderRadius: 8,
+                    outline: "none",
+                    cursor: "pointer",
+                    background: "transparent"
+                  }}
+                />
+                <input
+                  type="text"
+                  value={settings.jerseyColor2 ?? "#b91c1c"}
+                  onChange={(e) => setSettings({ ...settings, jerseyColor2: e.target.value })}
+                  placeholder="#b91c1c"
+                  style={{ 
+                    flex: 1,
+                    padding: "10px 14px",
+                    border: "2px solid rgba(100, 116, 139, 0.3)",
+                    borderRadius: 8,
+                    fontSize: 14,
+                    outline: "none",
+                    transition: "border-color 0.2s",
+                    fontFamily: "inherit",
+                    background: "rgba(15, 23, 42, 0.5)",
+                    color: "#f1f5f9"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#ACEF34"}
+                  onBlur={(e) => e.target.style.borderColor = "rgba(100, 116, 139, 0.3)"}
+                />
+              </div>
+            </label>
+
+            <label style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1", marginBottom: 8 }}>
+                �💫 Logo Opacity
               </span>
               <input
                 type="number"
