@@ -158,12 +158,12 @@ function deriveProgramFromTournament(matches: any[], courtName: string, nowTs: n
   if (nowMatch) schedule.push(nowMatch);
 
   for (const m of upcoming) {
-    if (schedule.length >= 4) break;
+    if (schedule.length >= 12) break;
     if (nowMatch && m.id === nowMatch.id) continue;
     schedule.push(m);
   }
 
-  while (schedule.length < 4 && finished.length) {
+  while (schedule.length < 12 && finished.length) {
     const candidate = finished[finished.length - (schedule.length + 1)];
     if (!candidate) break;
     schedule.push(candidate);
