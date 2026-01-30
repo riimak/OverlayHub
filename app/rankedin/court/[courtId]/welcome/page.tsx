@@ -51,17 +51,18 @@ export default function WelcomePage({
             margin:0;
             background: transparent;
             font-family: ${JSON.stringify(font)}, Inter, Arial, sans-serif;
+            height: 100vh;
           }
 
           .wrap {
             width: 100%;
             padding: 20px;
             transform: scale(${safeScale});
-            transform-origin: top center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            transform-origin: bottom center;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
           }
 
           /* ===== WELCOME CARD ===== */

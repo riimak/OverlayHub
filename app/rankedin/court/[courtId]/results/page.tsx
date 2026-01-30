@@ -153,13 +153,14 @@ export default function ResultsPage() {
     return (
       <div style={{
         minHeight: "100vh",
-        background: "rgba(30, 41, 59, 0.95)",
+        background: "transparent",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end",
         justifyContent: "center",
         color: "#f1f5f9",
         fontSize: 24,
-        fontFamily: "Inter, -apple-system, sans-serif"
+        fontFamily: "Inter, -apple-system, sans-serif",
+        paddingBottom: "32px"
       }}>
         Loading results...
       </div>
@@ -170,14 +171,14 @@ export default function ResultsPage() {
     return (
       <div style={{
         minHeight: "100vh",
-        background: "rgba(30, 41, 59, 0.95)",
+        background: "transparent",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end",
         justifyContent: "center",
         color: "#ef4444",
         fontSize: 20,
         fontFamily: "Inter, -apple-system, sans-serif",
-        padding: 32
+        padding: "0 32px 32px 32px"
       }}>
         {error}
       </div>
@@ -187,9 +188,11 @@ export default function ResultsPage() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "rgba(30, 41, 59, 0.95)",
-      padding: "32px 24px",
-      fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      background: "transparent",
+      padding: "0 24px 32px 24px",
+      fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      display: "flex",
+      alignItems: "flex-end"
     }}>
       <style>{`
         :root{

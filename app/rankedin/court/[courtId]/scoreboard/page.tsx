@@ -57,12 +57,17 @@ export default function ScoreboardPage({
             background: transparent;
             font-family: ${JSON.stringify(font)}, Inter, Arial, sans-serif;
             overflow: hidden;
+            height: 100vh;
           }
 
           .wrap {
             width: 100%;
             padding: 18px;
             background: transparent;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
           }
 
           /* ===== SCORE BAR ===== */

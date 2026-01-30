@@ -55,13 +55,18 @@ export default function SchedulePage({
             margin:0;
             background: transparent;
             font-family: ${JSON.stringify(font)}, Inter, Arial, sans-serif;
+            height: 100vh;
           }
 
           .wrap {
             width: 100%;
             padding: 20px;
             transform: scale(${safeScale});
-            transform-origin: top center;
+            transform-origin: bottom center;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
           }
 
           /* ===== SCHEDULE CARD ===== */
