@@ -273,9 +273,11 @@ export default function SchedulePage({
       // Set header info
       el('subtitle').textContent = settings.subtitle || (data.courtName ? data.courtName : '—');
 
-      // For now, we'll show the current match if available
-      // In a real implementation, you'd fetch multiple matches from an endpoint
-      if (!match) {
+      // Get schedule from program data
+      const program = data.program || null;
+      const schedule = program?.schedule || [];
+      
+      if (!schedule.length && !match) {
         matchList.innerHTML = '';
         matchList.classList.add('hidden');
         empty.classList.remove('hidden');
@@ -285,40 +287,82 @@ export default function SchedulePage({
       matchList.classList.remove('hidden');
       empty.classList.add('hidden');
 
-      const isLive = !!match.isLive;
-      const swap = !!settings.swap;
-      const p1 = match.player1;
-      const p2 = match.player2;
+      // Build HTML for all matches in the schedule
+      let html = '';
+      
+      if (schedule.length > 0) {
+        // Display all matches from the program schedule
+        for (const schedMatch of schedule) {
+          const p1 = schedMatch.player1 || { name: '—' };
+          const p2 = schedMatch.player2 || { name: '—' };
+          
+          const isLive = match && match.isLive && 
+                        (p1.name === match.player1?.name && p2.name === match.player2?.name);
+          
+          const liveClass = isLive ? ' live' : '';
+          const liveTag = isLive ? \`
+            <div class="liveTag">
+              <div class="liveDot"></div>
+              <div class="liveText">LIVE</div>
+            </div>
+          \` : '';
+          
+          const timeDisplay = schedMatch.date ? formatTime(schedMatch.date) : 
+                             (isLive ? 'In Progress' : '—');
+          
+          html += \`
+            <div class="matchItem\${liveClass}">
+              <div class="matchPlayers">
+                <span class="playerName">\${String(p1.name || '—').toUpperCase()}</span>
+                <span class="vsLabel">VS</span>
+                <span class="playerName">\${String(p2.name || '—').toUpperCase()}</span>
+              </div>
+              <div class="matchMeta">
+                <span class="matchTime">\${timeDisplay}</span>
+                \${liveTag}
+              </div>
+            </div>
+          \`;
+        }
+      } else if (match) {
+        // Fallback to showing just the current match if no program schedule
+        const isLive = !!match.isLive;
+        const swap = !!settings.swap;
+        const p1 = match.player1;
+        const p2 = match.player2;
 
-      const left = swap ? p2 : p1;
-      const right = swap ? p1 : p2;
+        const left = swap ? p2 : p1;
+        const right = swap ? p1 : p2;
 
-      const nameLeft = (swap ? settings.name2 : settings.name1) || left?.name || 'Player 1';
-      const nameRight = (swap ? settings.name1 : settings.name2) || right?.name || 'Player 2';
+        const nameLeft = (swap ? settings.name2 : settings.name1) || left?.name || 'Player 1';
+        const nameRight = (swap ? settings.name1 : settings.name2) || right?.name || 'Player 2';
 
-      const liveClass = isLive ? ' live' : '';
-      const liveTag = isLive ? \`
-        <div class="liveTag">
-          <div class="liveDot"></div>
-          <div class="liveText">LIVE</div>
-        </div>
-      \` : '';
-
-      const timeDisplay = match.scheduledStartTime ? formatTime(match.scheduledStartTime) : (isLive ? 'In Progress' : '—');
-
-      matchList.innerHTML = \`
-        <div class="matchItem\${liveClass}">
-          <div class="matchPlayers">
-            <span class="playerName">\${String(nameLeft).toUpperCase()}</span>
-            <span class="vsLabel">VS</span>
-            <span class="playerName">\${String(nameRight).toUpperCase()}</span>
+        const liveClass = isLive ? ' live' : '';
+        const liveTag = isLive ? \`
+          <div class="liveTag">
+            <div class="liveDot"></div>
+            <div class="liveText">LIVE</div>
           </div>
-          <div class="matchMeta">
-            <span class="matchTime">\${timeDisplay}</span>
-            \${liveTag}
+        \` : '';
+
+        const timeDisplay = match.scheduledStartTime ? formatTime(match.scheduledStartTime) : (isLive ? 'In Progress' : '—');
+
+        html = \`
+          <div class="matchItem\${liveClass}">
+            <div class="matchPlayers">
+              <span class="playerName">\${String(nameLeft).toUpperCase()}</span>
+              <span class="vsLabel">VS</span>
+              <span class="playerName">\${String(nameRight).toUpperCase()}</span>
+            </div>
+            <div class="matchMeta">
+              <span class="matchTime">\${timeDisplay}</span>
+              \${liveTag}
+            </div>
           </div>
-        </div>
-      \`;
+        \`;
+      }
+      
+      matchList.innerHTML = html;
 
     } catch (e) {
       // Keep last known values on screen
